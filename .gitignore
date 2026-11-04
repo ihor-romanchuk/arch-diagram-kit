@@ -1,0 +1,3 @@
+_rendered/*.err
+.DS_Store
+node_modules/
