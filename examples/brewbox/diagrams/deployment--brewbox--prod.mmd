@@ -1,0 +1,79 @@
+---
+title: BrewBox · Production deployment (AWS)
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: DEP-01
+%% type: deployment
+%% audience: tech
+%% status: Draft
+%% owner: Solutions architect
+%% approved-by: 
+%% last-verified: 2026-11-04
+%% notes: Where does each part of BrewBox run in production, and how is it connected?
+flowchart TB
+  users["<b>Customers</b>"]:::person
+  subgraph EDGE["AWS edge (global)"]
+    r53["<b>Route 53</b><br/>brewbox.com"]:::managed
+    cf["<b>CloudFront + AWS WAF</b>"]:::managed
+  end
+  subgraph AWS["AWS · eu-central-1 (Frankfurt) · prod account"]
+    amp["<b>Amplify Hosting</b><br/>Next.js web shop"]:::managed
+    apigw["<b>API Gateway</b><br/>Regional REST API"]:::managed
+    subgraph VPC["VPC 10.20.0.0/16 · 3 AZs"]
+      subgraph PUB["Public subnets"]
+        nat["<b>NAT Gateway</b>"]:::managed
+      end
+      subgraph PRIV["Private subnets"]
+        direction LR
+        alb["<b>Internal ALB</b>"]:::managed
+        ecs["<b>ECS Fargate</b><br/>Order Service (Node.js)"]:::internal
+        lam["<b>Lambda in VPC</b><br/>Subscription, Fulfilment<br/>(Node.js)"]:::internal
+      end
+      subgraph DATA["Data subnets"]
+        rds[("<b>Aurora PostgreSQL</b><br/>Multi-AZ")]:::store
+      end
+    end
+    subgraph REG["Regional managed services"]
+      eb[["<b>EventBridge</b>"]]:::managed
+      sqs[["<b>SQS</b>"]]:::store
+      ses["<b>SES</b>"]:::managed
+      cog["<b>Cognito</b>"]:::managed
+    end
+    tgw["<b>Transit Gateway</b><br/>+ Site-to-Site VPN"]:::managed
+  end
+  subgraph ONPREM["Customer data centre"]
+    sap["<b>SAP ERP</b>"]:::external
+  end
+  ext["<b>Stripe, 3PL SFTP</b><br/>Internet"]:::external
+  users --> r53 --> cf
+  cf -- "/*" --> amp
+  cf -- "/api/*" --> apigw
+  apigw -- "VPC Link" --> alb --> ecs
+  ecs -- "SQL" --> rds
+  lam -- "SQL" --> rds
+  PRIV -- "Events, queues,<br/>email, auth" --> REG
+  PRIV -- "Outbound HTTPS/SFTP" --> nat --> ext
+  ecs -- "Invoices" --> tgw --> sap
+  style EDGE fill:#FBFCFD,stroke:#9AA8B3
+  style AWS fill:#FBFCFD,stroke:#7A8A97
+  style VPC fill:#F3F7FA,stroke:#1F6FA8
+  style PUB fill:#FFFFFF,stroke:#9AA8B3
+  style PRIV fill:#FFFFFF,stroke:#9AA8B3
+  style DATA fill:#FFFFFF,stroke:#9AA8B3
+  style REG fill:#FFFFFF,stroke:#D98200,stroke-dasharray:4 3
+  style ONPREM fill:#F3F6F8,stroke:#9AA8B3,stroke-dasharray:4 3
+  classDef person fill:#0B3D5C,stroke:#0B3D5C,color:#ffffff
+  classDef internal fill:#1F6FA8,stroke:#15527D,color:#ffffff
+  classDef managed fill:#FDF0DC,stroke:#D98200,stroke-width:1.5px,color:#3D2600
+  classDef external fill:#E8EDF1,stroke:#7A8A97,color:#1C2A35
+  classDef store fill:#DDEFE6,stroke:#3C8D6B,color:#12352A
+  classDef planned fill:#FFFFFF,stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4,color:#7C2D12

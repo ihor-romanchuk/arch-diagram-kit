@@ -1,0 +1,42 @@
+---
+title: BrewBox · Order lifecycle
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: STA-01
+%% type: state
+%% audience: tech
+%% status: Approved
+%% owner: Solutions architect
+%% approved-by: Lead engineer, 2026-11-04
+%% last-verified: 2026-11-04
+%% notes: Which order status transitions are allowed?
+stateDiagram-v2
+  direction TB
+  [*] --> Created
+  Created --> PaymentPending: checkout
+  PaymentPending --> Paid: Stripe webhook succeeded
+  PaymentPending --> PaymentFailed: card declined
+  PaymentFailed --> PaymentPending: retry (max 3)
+  PaymentFailed --> Cancelled: 3rd failure
+  Paid --> Picking: sent to warehouse
+  Picking --> Shipped: tracking number received
+  Shipped --> Delivered: carrier confirms
+  Paid --> Refunded: support refund
+  Delivered --> Refunded: complaint accepted
+  Delivered --> [*]
+  Cancelled --> [*]
+  Refunded --> [*]
+  note right of Paid
+    Every transition is saved in Aurora
+    and published to EventBridge
+    (OrderPaid, OrderShipped, ...)
+  end note

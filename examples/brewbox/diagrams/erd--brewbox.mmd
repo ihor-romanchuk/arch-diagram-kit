@@ -1,0 +1,70 @@
+---
+title: BrewBox · Order data model
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: ERD-01
+%% type: erd
+%% audience: tech
+%% status: Draft
+%% owner: Solutions architect
+%% approved-by: 
+%% last-verified: 2026-11-04
+%% notes: How are customers, subscriptions, orders, payments and shipments related?
+erDiagram
+  CUSTOMER ||--o{ SUBSCRIPTION : has
+  CUSTOMER ||--o{ ORDER : places
+  SUBSCRIPTION ||--o{ ORDER : "generates monthly"
+  ORDER ||--|{ ORDER_LINE : contains
+  PRODUCT ||--o{ ORDER_LINE : "appears in"
+  ORDER ||--o{ PAYMENT : "paid by"
+  ORDER ||--o| SHIPMENT : "shipped as"
+  CUSTOMER {
+    uuid id PK
+    text cognito_sub UK "Cognito user ID"
+    text email
+    text country
+  }
+  SUBSCRIPTION {
+    uuid id PK
+    uuid customer_id FK
+    text plan
+    date next_renewal
+    text status
+  }
+  ORDER {
+    uuid id PK
+    uuid customer_id FK
+    uuid subscription_id FK
+    text status
+    numeric total_eur
+  }
+  ORDER_LINE {
+    uuid order_id FK
+    text sku FK
+    int qty
+  }
+  PRODUCT {
+    text sku PK
+    text name
+    int weight_g
+  }
+  PAYMENT {
+    uuid id PK
+    uuid order_id FK
+    text stripe_intent_id
+    text status
+  }
+  SHIPMENT {
+    uuid id PK
+    uuid order_id FK
+    text tracking_no
+  }

@@ -1,0 +1,61 @@
+---
+title: BrewBox Platform · Containers
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: CON-01
+%% type: container
+%% audience: tech
+%% status: Approved
+%% owner: Solutions architect
+%% approved-by: Lead engineer, 2026-11-04
+%% last-verified: 2026-11-04
+%% notes: What are the building blocks of the BrewBox Platform and their technologies?
+flowchart TB
+  cust["<b>Customer</b>"]:::person
+  subgraph BB["BrewBox Platform · AWS"]
+    web["<b>Web shop</b><br/>Next.js on Amplify Hosting"]:::internal
+    app["<b>Mobile app</b><br/>React Native"]:::internal
+    cog["<b>Amazon Cognito</b><br/>Customer sign-in"]:::managed
+    gw["<b>Amazon API Gateway</b><br/>REST API"]:::managed
+    ord["<b>Order Service</b><br/>Node.js · ECS Fargate"]:::internal
+    sub["<b>Subscription Service</b><br/>Node.js · Lambda"]:::internal
+    sch["<b>EventBridge Scheduler</b><br/>Daily renewal run"]:::managed
+    db[("<b>Orders DB</b><br/>Aurora PostgreSQL")]:::store
+    bus[["<b>Event bus</b><br/>Amazon EventBridge"]]:::managed
+    q[["<b>Fulfilment queue</b><br/>Amazon SQS"]]:::store
+    ful["<b>Fulfilment Worker</b><br/>Node.js · Lambda"]:::internal
+    ses["<b>Amazon SES</b><br/>Emails"]:::managed
+  end
+  stripe["<b>Stripe</b>"]:::external
+  wms["<b>3PL Warehouse</b>"]:::external
+  cust --> web
+  cust --> app
+  web -- "Signs in [OIDC]" --> cog
+  web -- "HTTPS/JSON + JWT" --> gw
+  app -- "HTTPS/JSON + JWT" --> gw
+  gw -- "VPC Link" --> ord
+  sch -- "Invokes daily" --> sub
+  sub -- "Creates renewal<br/>orders [REST]" --> ord
+  ord -- "Reads/writes [SQL]" --> db
+  ord -- "Charges card [REST]" --> stripe
+  ord -- "OrderPaid event" --> bus
+  bus -- "Rule: OrderPaid" --> q
+  bus -- "Rule: all order events" --> ses
+  q -- "Polls" --> ful
+  ful -- "Uploads order<br/>file [SFTP]" --> wms
+  style BB fill:#F5F8FB,stroke:#1F6FA8,stroke-dasharray:4 3
+  classDef person fill:#0B3D5C,stroke:#0B3D5C,color:#ffffff
+  classDef internal fill:#1F6FA8,stroke:#15527D,color:#ffffff
+  classDef managed fill:#FDF0DC,stroke:#D98200,stroke-width:1.5px,color:#3D2600
+  classDef external fill:#E8EDF1,stroke:#7A8A97,color:#1C2A35
+  classDef store fill:#DDEFE6,stroke:#3C8D6B,color:#12352A
+  classDef planned fill:#FFFFFF,stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4,color:#7C2D12
