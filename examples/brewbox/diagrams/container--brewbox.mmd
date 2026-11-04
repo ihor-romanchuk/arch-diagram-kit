@@ -47,10 +47,10 @@ flowchart TB
   sub -- "Creates renewal<br/>orders [REST]" --> ord
   ord -- "Reads/writes [SQL]" --> db
   ord -- "Charges card [REST]" --> stripe
-  ord -- "OrderPaid event" --> bus
-  bus -- "Rule: OrderPaid" --> q
-  bus -- "Rule: all order events" --> ses
-  q -- "Polls" --> ful
+  ord -. "Publishes OrderPaid [PutEvents]" .-> bus
+  bus -. "Rule: OrderPaid" .-> q
+  q -. "Triggers [Lambda event source mapping]" .-> ful
+  ful -- "Sends shipping email [SES API]" --> ses
   ful -- "Uploads order<br/>file [SFTP]" --> wms
   style BB fill:#F5F8FB,stroke:#1F6FA8,stroke-dasharray:4 3
   classDef person fill:#0B3D5C,stroke:#0B3D5C,color:#ffffff
