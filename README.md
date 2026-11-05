@@ -15,8 +15,9 @@ arch-diagram-kit/
 ├── README.md                 this file
 ├── catalog.md                the 8 diagram types: when to use each, what it must show
 ├── house-style.md            header, statuses, names, colour key, labels, review checklist
-├── skill/
-│   └── SKILL.md              the "architecture-diagrams" skill for Claude
+├── skills/
+│   └── architecture-diagrams/
+│       └── SKILL.md          the skill for Claude and other agents (npx skills layout)
 ├── project-template/
 │   └── PROJECT.md            copy into each new project and fill in
 ├── examples/brewbox/         a complete worked example (fictional shop on AWS + Node.js)
@@ -28,15 +29,39 @@ arch-diagram-kit/
     └── render.sh             render all diagrams to SVG/PNG and check for errors
 ```
 
-## Set up Claude (once per account)
+## Install the skill
 
-**Personal account:** save the skill from `skill/SKILL.md` in Claude's skills settings (or ask Claude to propose it from that file).
+The skill lives at `skills/architecture-diagrams/SKILL.md`. This repo is the only copy you edit; every install is pulled from it.
 
-**Enterprise account:** check whether your organisation allows custom skills.
-- If yes: add the same `SKILL.md`.
-- If not: create a Claude Project for the client and paste the body of `SKILL.md` into the Project instructions. Add `catalog.md`, `house-style.md` and the project's `PROJECT.md` as Project knowledge.
+### Coding agents on a laptop (Claude Code, Cursor, Codex, Copilot and others)
 
-**Claude Code:** copy `skill/` to `~/.claude/skills/architecture-diagrams/`.
+Use the [skills CLI](https://skills.sh) (needs Node.js):
+
+```bash
+# everywhere on this machine, for every agent you have installed
+npx skills add ihor-romanchuk/arch-diagram-kit --skill architecture-diagrams -g
+
+# only in the current project (commits it to the project's agent folders)
+npx skills add ihor-romanchuk/arch-diagram-kit --skill architecture-diagrams
+
+# only for Claude Code
+npx skills add ihor-romanchuk/arch-diagram-kit --skill architecture-diagrams -g -a claude-code
+
+# after you change the skill in this repo
+npx skills update architecture-diagrams -g
+
+# check what is installed
+npx skills list -g
+```
+
+While the repo is private, these commands only work on machines where git can read your GitHub account.
+
+### Claude app (claude.ai, desktop, mobile)
+
+The app does not use the CLI. Pick one:
+
+- **Personal account:** ask Claude *"propose the architecture-diagrams skill from github.com/ihor-romanchuk/arch-diagram-kit"* and save it from the card, or upload the skill folder in Settings, under Skills. Repeat after you change the skill.
+- **Enterprise account:** check whether your organisation allows custom skills. If yes, add it the same way (or ask an admin to add it for the whole organisation). If not, create a Claude Project for the client and paste the body of `SKILL.md` into the Project instructions, with `catalog.md`, `house-style.md` and the project's `PROJECT.md` as Project knowledge.
 
 ## Start a new project (about 30 minutes)
 
