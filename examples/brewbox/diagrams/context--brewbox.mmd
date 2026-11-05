@@ -1,0 +1,41 @@
+---
+title: BrewBox · System context
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: CTX-01
+%% type: system-context
+%% audience: business
+%% status: Approved
+%% owner: Solutions architect
+%% approved-by: Head of E-commerce, 2026-11-04
+%% last-verified: 2026-11-04
+%% notes: What is BrewBox, who uses it, and what does it depend on?
+flowchart TB
+  cust["<b>Customer</b><br/>Buys coffee subscriptions"]:::person
+  agent["<b>Support agent</b><br/>Handles refunds and complaints"]:::person
+  bb["<b>BrewBox Platform</b><br/>Online coffee shop with<br/>monthly subscriptions<br/><i>runs on AWS</i>"]:::internal
+  stripe["<b>Stripe</b><br/>Card payments"]:::external
+  sap["<b>SAP ERP</b><br/>Invoicing and accounting"]:::external
+  wms["<b>3PL Warehouse</b><br/>Picks, packs and ships"]:::external
+  mail["<b>Amazon SES</b><br/>Order emails"]:::managed
+  cust -- "Orders and manages<br/>subscription" --> bb
+  agent -- "Looks up orders,<br/>issues refunds" --> bb
+  bb -- "Takes payments" --> stripe
+  bb -- "Sends sales for invoicing" --> sap
+  bb -- "Sends orders to ship" --> wms
+  bb -- "Sends confirmations" --> mail
+  classDef person fill:#0B3D5C,stroke:#0B3D5C,color:#ffffff
+  classDef internal fill:#1F6FA8,stroke:#15527D,color:#ffffff
+  classDef managed fill:#FDF0DC,stroke:#D98200,stroke-width:1.5px,color:#3D2600
+  classDef external fill:#E8EDF1,stroke:#7A8A97,color:#1C2A35
+  classDef store fill:#DDEFE6,stroke:#3C8D6B,color:#12352A
+  classDef planned fill:#FFFFFF,stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4,color:#7C2D12

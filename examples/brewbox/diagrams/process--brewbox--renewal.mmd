@@ -1,0 +1,56 @@
+---
+title: BrewBox · Subscription renewal process
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: PRC-01
+%% type: business-process
+%% audience: business
+%% status: Approved
+%% owner: Solutions architect
+%% approved-by: Head of E-commerce, 2026-11-04
+%% last-verified: 2026-11-04
+%% notes: What happens each month when a subscription renews, including failed payments?
+flowchart LR
+  subgraph C["Customer"]
+    direction TB
+    c1(["Renewal date<br/>reached"])
+  end
+  subgraph S["BrewBox Platform"]
+    direction TB
+    s1["Create renewal order<br/><small>daily EventBridge schedule</small>"] --> s2{"Payment<br/>succeeded?"}
+    s2 -- "No" --> s3["Retry in 24 h,<br/>email customer"]
+    s3 --> s4{"3rd failure?"}
+    s4 -- "Yes" --> s5(["Pause subscription"])
+    s4 -- "No" --> s2
+    s2 -- "Yes" --> s6["Send order<br/>to warehouse"]
+  end
+  subgraph W["3PL Warehouse"]
+    direction TB
+    w1["Pick and pack"] --> w2["Ship, return<br/>tracking number"] --> w3(["Customer<br/>receives box"])
+  end
+  subgraph F["Finance (SAP)"]
+    direction TB
+    f1(["Create invoice"])
+  end
+  c1 --> s1
+  s6 --> w1
+  s6 --> f1
+  classDef step fill:#FFFFFF,stroke:#1F6FA8,color:#1C2A35
+  classDef decision fill:#FFF4E5,stroke:#B45309,color:#5A2E05
+  classDef ends fill:#0B3D5C,stroke:#0B3D5C,color:#ffffff
+  class s1,s3,s6,w1,w2,f1 step
+  class s2,s4 decision
+  class c1,s5,w3 ends
+  style C fill:#F3F6F8,stroke:#9AA8B3
+  style S fill:#EAF2F9,stroke:#1F6FA8
+  style W fill:#F3F6F8,stroke:#9AA8B3
+  style F fill:#F3F6F8,stroke:#9AA8B3

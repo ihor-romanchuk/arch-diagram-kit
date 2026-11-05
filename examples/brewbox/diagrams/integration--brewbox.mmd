@@ -1,0 +1,40 @@
+---
+title: BrewBox · Integration map
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: INT-01
+%% type: integration-map
+%% audience: business+tech
+%% status: In review
+%% owner: Solutions architect
+%% approved-by: 
+%% last-verified: 2026-11-04
+%% notes: Which systems are connected, how, and what is live or planned?
+flowchart LR
+  shop["<b>BrewBox Platform</b><br/>AWS"]:::internal
+  stripe["<b>Stripe</b>"]:::external
+  sap["<b>SAP ERP</b>"]:::external
+  wms["<b>3PL Warehouse</b>"]:::external
+  crm["<b>HubSpot CRM</b>"]:::external
+  shop -- "I-01 · REST, sync<br/>LIVE" --> stripe
+  stripe -. "I-02 · Webhook into<br/>API Gateway · LIVE" .-> shop
+  shop -- "I-03 · Nightly CSV,<br/>S3 + Transfer Family SFTP<br/>LIVE" --> sap
+  shop == "I-04 · EventBridge events,<br/>real time · PLANNED Q1<br/>replaces I-03" ==> sap
+  shop -- "I-05 · Transfer Family SFTP,<br/>every 15 min · LIVE" --> wms
+  shop == "I-06 · EventBridge<br/>API destination<br/>PLANNED Q2" ==> crm
+  linkStyle 3,5 stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4
+  classDef person fill:#0B3D5C,stroke:#0B3D5C,color:#ffffff
+  classDef internal fill:#1F6FA8,stroke:#15527D,color:#ffffff
+  classDef managed fill:#FDF0DC,stroke:#D98200,stroke-width:1.5px,color:#3D2600
+  classDef external fill:#E8EDF1,stroke:#7A8A97,color:#1C2A35
+  classDef store fill:#DDEFE6,stroke:#3C8D6B,color:#12352A
+  classDef planned fill:#FFFFFF,stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4,color:#7C2D12

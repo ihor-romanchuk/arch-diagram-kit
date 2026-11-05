@@ -1,0 +1,47 @@
+---
+title: BrewBox · Checkout with 3-D Secure
+config:
+  theme: base
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    primaryColor: "#EAF2F9"
+    primaryBorderColor: "#1F6FA8"
+    primaryTextColor: "#1C2A35"
+    lineColor: "#4B5B68"
+    secondaryColor: "#F3F6F8"
+    tertiaryColor: "#FFFFFF"
+---
+%% id: SEQ-01
+%% type: sequence
+%% audience: tech
+%% status: Approved
+%% owner: Solutions architect
+%% approved-by: Lead engineer, 2026-11-04
+%% last-verified: 2026-11-04
+%% notes: When exactly does an order become PAID, and how does fulfilment start?
+sequenceDiagram
+  autonumber
+  actor C as Customer
+  participant W as Web shop<br/>(Next.js)
+  participant G as API Gateway
+  participant O as Order Service<br/>(Node.js, Fargate)
+  participant S as Stripe
+  participant E as EventBridge
+  participant F as Fulfilment Worker<br/>(SQS → Lambda)
+  participant H as 3PL Warehouse
+  C->>W: Click "Pay"
+  W->>G: POST /orders (JWT)
+  G->>O: Forward request
+  O->>O: Save order in Aurora (PAYMENT_PENDING)
+  O->>S: Create PaymentIntent
+  S-->>O: requires_action (3-D Secure)
+  O-->>W: 202 + client secret
+  W->>C: Show bank 3-D Secure screen
+  C->>S: Confirm in bank app
+  S-)G: Webhook payment_intent.succeeded
+  G->>O: Forward webhook
+  O->>O: Status = PAID
+  O-)E: PutEvents OrderPaid
+  E-)F: Rule → SQS → Lambda
+  F->>H: Upload order file (SFTP)
+  W-->>C: "Thanks, your box is on its way"
