@@ -4,7 +4,10 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cellToHtml, parseArgs, parseHeader, parseProject, parseTableUnder, repoWebUrl, slugFor, statusGroup } from '../lib/manifest.mjs';
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { cellToHtml, loadTheme, parseArgs, parseHeader, parseProject, parseTableUnder, recolor, repoWebUrl, slugFor, statusGroup } from '../lib/manifest.mjs';
 
 const MMD = `---
 title: Molecule systems · Integration map
@@ -43,6 +46,49 @@ describe('parseHeader', () => {
   test('the link slug is the lower-case id, else the file name', () => {
     assert.equal(slugFor({ id: 'INT-01' }, 'integration--molecule.mmd'), 'int-01');
     assert.equal(slugFor({}, 'integration--molecule.mmd'), 'integration--molecule');
+  });
+});
+
+describe('notes in the header', () => {
+  const text = [
+    '%% id: PRC-01',
+    '%% notes: The question, not a note.',
+    '%% note G1 m_rule,p_check: The gate holds the order.',
+    '%%    It waits for every line.',
+    '%% note T1 s_rej [to confirm]: How a rejection reaches us.',
+    '%% note X9: A note with no box.',
+    '%% owner: Ihor',
+    'flowchart LR',
+  ].join('\n');
+  const meta = parseHeader(text);
+  test('reads each note with its targets, its "to confirm" mark and its continued text', () => {
+    assert.deepEqual(meta.callouts, [
+      { code: 'G1', targets: ['m_rule', 'p_check'], toConfirm: false, text: 'The gate holds the order. It waits for every line.' },
+      { code: 'T1', targets: ['s_rej'], toConfirm: true, text: 'How a rejection reaches us.' },
+      { code: 'X9', targets: [], toConfirm: false, text: 'A note with no box.' },
+    ]);
+  });
+  test('keeps the header keys, the question in "notes" included', () => {
+    assert.equal(meta.notes, 'The question, not a note.');
+    assert.equal(meta.owner, 'Ihor');
+  });
+  test('a file without notes has no callouts', () => {
+    assert.equal(parseHeader(MMD).callouts, undefined);
+  });
+});
+
+describe('themes', () => {
+  test('recolor replaces each mapped colour, in any case, and leaves the others', () => {
+    const out = recolor('classDef internal fill:#1f6fa8,stroke:#15527D,color:#ffffff', { '#1F6FA8': '#186267', '#15527d': '#103341' });
+    assert.equal(out, 'classDef internal fill:#186267,stroke:#103341,color:#ffffff');
+  });
+  test('loadTheme gives null with no file, and refuses a font host other than Google Fonts', async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'kit-theme-'));
+    assert.equal(await loadTheme(dir, 'theme.json'), null);
+    await writeFile(path.join(dir, 'bad.json'), JSON.stringify({ fonts: { stylesheet: 'https://evil.example/f.css' } }));
+    await assert.rejects(loadTheme(dir, 'bad.json'), /fonts\.googleapis\.com/);
+    await writeFile(path.join(dir, 'ok.json'), JSON.stringify({ recolor: { '#1F6FA8': '#186267' } }));
+    assert.deepEqual((await loadTheme(dir, 'ok.json')).recolor, { '#1F6FA8': '#186267' });
   });
 });
 

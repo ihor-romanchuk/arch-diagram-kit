@@ -1,6 +1,6 @@
 {
   "name": "arch-diagram-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Architecture diagrams in Mermaid: a viewer with pan, zoom and reload on save, exports and a publishable copy",
   "type": "module",
   "bin": {

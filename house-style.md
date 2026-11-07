@@ -34,6 +34,8 @@ config:
 %% approved-by: <name, date or empty>
 %% last-verified: 2026-11-04
 %% notes: <one line: what this diagram answers>
+%% note G1 node_id: <a note on one box, shown in the viewer's notes rail>
+%% note T1 node_id [to confirm]: <a point that is not decided yet>
 ```
 
 | Field | Rule |
@@ -44,6 +46,7 @@ config:
 | `status` | See section 3 |
 | `last-verified` | The date someone last checked the diagram against reality |
 | `notes` | The question this diagram answers, in one line |
+| `note` | Optional, as many as necessary. `%% note <code> [targets] [to confirm]: <text>`. The code is short and unique in the file (`G1`, `T1`). The targets are node IDs or integration IDs (`I-04`), separated by commas, with no spaces. A line that starts with `%%` and two or more spaces continues the note above. The viewer puts the code in a circle on the first target and lists the notes beside the diagram. Mark a point that is not decided with `[to confirm]`: the viewer shows it in yellow and can show only those. |
 
 Keep both `fontFamily` lines. Mermaid 11 uses only the one directly under `config:`; without it, every renderer falls back to its default font.
 
@@ -79,6 +82,7 @@ Paste this block at the end of every flowchart. Use the same classes on every pr
   classDef external fill:#E8EDF1,stroke:#7A8A97,color:#1C2A35
   classDef store fill:#DDEFE6,stroke:#3C8D6B,color:#12352A
   classDef planned fill:#FFFFFF,stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4,color:#7C2D12
+  classDef tbc fill:#FFF0A8,stroke:#C07A1A,color:#5C4A00
 ```
 
 | Class | Use for | Example |
@@ -89,6 +93,10 @@ Paste this block at the end of every flowchart. Use the same classes on every pr
 | `external` | Other companies' or other teams' systems | Stripe, SAP ERP, 3PL Warehouse |
 | `store` | Databases, queues, buckets, caches | Aurora PostgreSQL, SQS |
 | `planned` | Any box that does not exist yet | New CRM, planned service |
+| `tbc` | A box whose content is not confirmed yet. Give it a `[to confirm]` note that says what is open. | A step that a vendor must confirm |
+
+A project can show these colours in its own brand without a change to the `.mmd` files: see
+"Project themes" in the README.
 
 Planned **links** get this style (list the link numbers, counting from 0):
 

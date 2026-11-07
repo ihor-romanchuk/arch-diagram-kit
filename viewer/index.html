@@ -22,6 +22,10 @@
   --board: #FFFFFF;
   --board-line: #D3DCE3;
   --font: "IBM Plex Sans", Arial, Helvetica, sans-serif;
+  --heading: var(--font);
+  --tbc: #FFF0A8;
+  --tbc-ink: #5C4A00;
+  --tbc-line: #C07A1A;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
@@ -29,12 +33,14 @@
     --bg: #0F1820; --surface: #16222C; --fg: #E4EBF0; --muted: #9AABB8; --line: #2A3B48;
     --accent: #5AA6DC; --accent-ink: #0F1820; --sel: #3A3416; --planned: #F08A5D; --ok: #6CC3A0;
     --err: #FDA29B; --err-bg: #3A1A17; --board: #FFFFFF; --board-line: #2A3B48; color-scheme: dark;
+    --tbc: #5A4C12; --tbc-ink: #FFE89A; --tbc-line: #E2A04A;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0F1820; --surface: #16222C; --fg: #E4EBF0; --muted: #9AABB8; --line: #2A3B48;
   --accent: #5AA6DC; --accent-ink: #0F1820; --sel: #3A3416; --planned: #F08A5D; --ok: #6CC3A0;
   --err: #FDA29B; --err-bg: #3A1A17; --board: #FFFFFF; --board-line: #2A3B48; color-scheme: dark;
+  --tbc: #5A4C12; --tbc-ink: #FFE89A; --tbc-line: #E2A04A;
 }
 html, body { background: var(--bg); color: var(--fg); }
 body {
@@ -46,7 +52,7 @@ body {
 .wrap { max-width: 1680px; margin: 0 auto; display: grid; gap: 14px; }
 header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
 .brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; min-width: 0; }
-h1 { margin: 0; font-size: 1.35rem; font-weight: 600; text-wrap: balance; }
+h1 { margin: 0; font: 600 1.35rem/1.25 var(--heading); text-wrap: balance; }
 .project { font-size: .85rem; color: var(--muted); }
 .live { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--muted); font-family: var(--mono); }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
@@ -104,7 +110,47 @@ button:focus-visible, select:focus-visible, tr:focus-visible, a:focus-visible { 
 .stage svg .edgePaths path.sel { stroke-width: 3.5px !important; }
 .stage svg .edgeLabels > .edgeLabel.sel .labelBkg, .stage svg .edgeLabels > .edgeLabel.sel foreignObject div { background: #FFE58A !important; }
 
-h2 { margin: 6px 0 0; font-size: 1rem; font-weight: 600; }
+h2 { margin: 6px 0 0; font: 600 1rem/1.3 var(--heading); }
+
+/* The board and the notes rail sit side by side on wide screens, one above the other on narrow ones. */
+.work { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+.work.has-notes { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); }
+@media (max-width: 1000px) { .work.has-notes { grid-template-columns: minmax(0, 1fr); } }
+.rail {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+  display: flex; flex-direction: column; gap: 10px; min-height: 0; max-height: clamp(420px, 74vh, 900px);
+}
+@media (max-width: 1000px) { .rail { max-height: none; } }
+.rail-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.rail-head h2 { margin: 0; }
+.rail-count { font-size: .78rem; color: var(--muted); font-family: var(--mono); }
+.rail input[type="search"] {
+  font: .88rem var(--font); color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 10px; min-height: 34px; width: 100%; box-sizing: border-box;
+}
+.rail label.check { display: flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); cursor: pointer; }
+.notes { overflow-y: auto; display: grid; gap: 8px; align-content: start; padding-right: 2px; }
+.note {
+  border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 7px;
+  padding: 8px 10px; font-size: .85rem; line-height: 1.45; cursor: pointer; background: var(--surface);
+}
+.note:hover { border-color: var(--accent); }
+.note.sel { box-shadow: 0 0 0 2px var(--accent); }
+.note.tbc { background: var(--tbc); color: var(--tbc-ink); border-left-color: var(--tbc-line); }
+.note .code {
+  display: inline-block; min-width: 1.6em; text-align: center; font: 600 .72rem var(--mono); padding: 1px 6px; margin-right: 6px;
+  border-radius: 999px; background: var(--accent); color: var(--accent-ink); vertical-align: 1px;
+}
+.note.tbc .code { background: var(--tbc-line); color: #FFFFFF; }
+.note .flag { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-left: 4px; }
+.note a { color: inherit; }
+.note code { font-family: var(--mono); font-size: .85em; }
+.notes-empty { font-size: .85rem; color: var(--muted); }
+.stage svg .badge { cursor: pointer; }
+.stage svg .badge circle { fill: var(--accent); stroke: #FFFFFF; stroke-width: 2px; }
+.stage svg .badge.tbc circle { fill: #C07A1A; }
+.stage svg .badge text { fill: #FFFFFF; font: 700 10px Arial, Helvetica, sans-serif; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.stage svg.has-sel .badge:not(.sel) { opacity: .3; }
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
 table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: .85rem; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -157,11 +203,19 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     </div>
   </div>
 
-  <div class="board" id="board">
-    <div class="stage" id="stage"></div>
-    <div class="empty" id="empty">Loading diagrams…</div>
-    <div class="error" id="error" role="alert" hidden></div>
-    <div class="hint">Drag to pan · scroll or pinch to zoom · click an edge label to pick an integration</div>
+  <div class="work" id="work">
+    <div class="board" id="board">
+      <div class="stage" id="stage"></div>
+      <div class="empty" id="empty">Loading diagrams…</div>
+      <div class="error" id="error" role="alert" hidden></div>
+      <div class="hint">Drag to pan · scroll or pinch to zoom · click a label or a numbered circle</div>
+    </div>
+    <aside class="rail" id="rail" hidden aria-label="Notes">
+      <div class="rail-head"><h2>Notes</h2><span class="rail-count" id="note-count"></span></div>
+      <input type="search" id="note-search" placeholder="Search the notes" aria-label="Search the notes">
+      <label class="check" id="tbc-wrap"><input type="checkbox" id="note-tbc"> To confirm only</label>
+      <div class="notes" id="notes"></div>
+    </aside>
   </div>
 
   <section id="registry" hidden>
@@ -183,7 +237,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   const $ = (id) => document.getElementById(id);
   const board = $('board'), stage = $('stage'), errorEl = $('error'), emptyEl = $('empty');
   const select = $('diagram');
-  let manifest = null, current = null, renderSeq = 0;
+  let manifest = null, current = null, renderSeq = 0, queue = Promise.resolve();
   let svg = null, base = null, vb = null, parts = {}, nodes = {}, selected = null, filter = 'all';
 
   mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
@@ -196,6 +250,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   }
   async function loadManifest() {
     manifest = JSON.parse(await getText('manifest.json'));
+    applyTheme(manifest.theme);
     $('project').textContent = manifest.project || '';
     const keep = select.value;
     select.innerHTML = '';
@@ -213,33 +268,83 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     if (!manifest.diagrams.length) emptyEl.textContent = 'No .mmd files in ' + (src.dir || 'the diagram folder') + '.';
   }
   function slugFromHash() { return decodeURIComponent(location.hash.replace(/^#/, '')).toLowerCase(); }
-  function pick() {
-    const want = slugFromHash();
-    return manifest.diagrams.find((d) => d.slug === want) || manifest.diagrams[0];
+  const find = () => manifest.diagrams.find((d) => d.slug === slugFromHash());
+  function pick() { return find() || manifest.diagrams[0]; }
+  // A link to a diagram added after the page loaded: read the list again before falling back.
+  async function pickFresh() {
+    if (!find() && slugFromHash()) await loadManifest();
+    return pick();
   }
 
-  async function show(d, keepView) {
-    if (!d) return;
+  // ---------- Theme ----------
+  let themeKey = null;
+  function applyTheme(theme) {
+    const key = JSON.stringify(theme || null);
+    if (key === themeKey) return;
+    themeKey = key;
+    document.getElementById('theme-style')?.remove();
+    document.getElementById('theme-fonts')?.remove();
+    if (!theme) return;
+    const fonts = theme.fonts || {};
+    if (fonts.stylesheet && /^https:\/\/fonts\.googleapis\.com\//.test(fonts.stylesheet)) {
+      const link = document.createElement('link');
+      link.id = 'theme-fonts'; link.rel = 'stylesheet'; link.href = fonts.stylesheet;
+      document.head.appendChild(link);
+    }
+    const decl = (vars) => Object.entries(vars || {})
+      .filter(([k, v]) => /^--[a-z-]+$/.test(k) && /^[^;{}<>]*$/.test(String(v)))
+      .map(([k, v]) => k + ':' + v + ';').join('');
+    const base = decl(Object.assign({}, theme.light,
+      fonts.body ? { '--font': fonts.body } : {}, fonts.heading ? { '--heading': fonts.heading } : {}));
+    const dark = decl(theme.dark);
+    const style = document.createElement('style');
+    style.id = 'theme-style';
+    style.textContent = ':root{' + base + '}' + (dark
+      ? '@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){' + dark + '}}:root[data-theme="dark"]{' + dark + '}'
+      : '');
+    // After the viewer's own style, so the theme's values win.
+    document.body.appendChild(style);
+  }
+  function themed(text) {
+    const map = manifest.theme && manifest.theme.recolor;
+    if (!map) return text;
+    const lookup = {};
+    Object.keys(map).forEach((k) => { lookup[k.toLowerCase()] = map[k]; });
+    return text.replace(/#[0-9a-f]{6}\b/gi, (c) => lookup[c.toLowerCase()] || c);
+  }
+
+  // Renders run one at a time, and only the latest request reaches the screen, so the drawing and
+  // its title always belong to the same diagram.
+  function show(d, keepView) {
+    if (!d) return Promise.resolve();
     const seq = ++renderSeq;
-    if (current && current.slug !== d.slug) keepView = false;
-    current = d;
     select.value = d.slug;
-    document.title = (d.id ? d.id + ' · ' : '') + (manifest.project || 'Architecture Diagrams');
-    $('title').textContent = d.title || d.file;
-    renderMeta(d);
+    queue = queue.then(() => render(d, seq, keepView)).catch((e) => showError(e.message || String(e)));
+    return queue;
+  }
+  async function render(d, seq, keepView) {
+    if (seq !== renderSeq) return;
+    if (!current || current.slug !== d.slug) keepView = false;
     let text;
     try {
-      text = await getText('diagrams/' + encodeURIComponent(d.file));
-    } catch (e) { return showError(e.message); }
+      text = themed(await getText('diagrams/' + encodeURIComponent(d.file)));
+    } catch (e) { if (seq === renderSeq) { setCurrent(d); showError(e.message); } return; }
     let out;
     try {
       out = await mermaid.render('dg' + seq, text);
     } catch (e) {
       document.getElementById('ddg' + seq)?.remove();
-      if (seq === renderSeq) showError('The diagram has an error. The last good version stays on screen.\n\n' + (e.message || e));
+      if (seq === renderSeq) {
+        const same = current && current.slug === d.slug;
+        setCurrent(d);
+        showError(same ? 'The diagram has an error. The last good version stays on screen.\n\n' + (e.message || e)
+          : 'The diagram has an error.\n\n' + (e.message || e));
+        if (!same && svg) { stage.innerHTML = ''; svg = null; renderNotes(); }
+      }
       return;
     }
     if (seq !== renderSeq) return;
+    setCurrent(d);
     errorEl.hidden = true;
     emptyEl.hidden = true;
     const oldVb = keepView && vb ? vb.slice() : null;
@@ -255,7 +360,16 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     apply();
     wire();
     applyFilter();
-    if (oldSel && parts[oldSel]) select_(oldSel, false);
+    renderNotes();
+    if (oldSel && oldSel.startsWith('note:')) selectNote(oldSel.slice(5), false);
+    else if (oldSel && parts[oldSel]) select_(oldSel, false);
+  }
+  function setCurrent(d) {
+    current = d;
+    select.value = d.slug;
+    document.title = (d.id ? d.id + ' · ' : '') + (manifest.project || 'Architecture Diagrams');
+    $('title').textContent = d.title || d.file;
+    renderMeta(d);
   }
   function showError(msg) {
     errorEl.textContent = msg;
@@ -305,7 +419,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   function fit() { if (svg) { vb = base.slice(); apply(); } }
   function fitBox(x0, y0, x1, y1) {
     const pad = 80, r = board.getBoundingClientRect(), aspect = r.width / r.height;
-    let w = Math.max(x1 - x0 + pad * 2, base[2] / 10), h = y1 - y0 + pad * 2;
+    let w = Math.max(x1 - x0 + pad * 2, base[2] / 5), h = y1 - y0 + pad * 2;
     if (w / h < aspect) w = h * aspect;
     w = Math.min(w, base[2]);
     h = w / aspect;
@@ -355,7 +469,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   function wire() {
     parts = {}; nodes = {}; selected = null;
     svg.querySelectorAll('g.node').forEach((g) => {
-      const m = g.id.match(/flowchart-(.+)-\d+$/);
+      const m = g.id.match(/(?:flowchart|state)-(.+)-\d+$/);
       if (m) nodes[m[1]] = g;
     });
     const paths = [...svg.querySelectorAll('.edgePaths path')];
@@ -394,10 +508,18 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   }
   function clearSel() {
     selected = null;
+    document.querySelectorAll('#reg-rows tr.sel, #notes .note.sel').forEach((t) => t.classList.remove('sel'));
     if (!svg) return;
     svg.classList.remove('has-sel');
     svg.querySelectorAll('.sel').forEach((el) => el.classList.remove('sel'));
-    document.querySelectorAll('#reg-rows tr.sel').forEach((t) => t.classList.remove('sel'));
+  }
+  function zoomTo(els) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    els.forEach((el) => {
+      const r = el.getBoundingClientRect(), a = toSvg(r.left, r.top), b = toSvg(r.right, r.bottom);
+      x0 = Math.min(x0, a.x); y0 = Math.min(y0, a.y); x1 = Math.max(x1, b.x); y1 = Math.max(y1, b.y);
+    });
+    if (isFinite(x0)) fitBox(x0, y0, x1, y1);
   }
   function select_(id, zoom) {
     const p = parts[id];
@@ -409,18 +531,104 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     els.forEach((el) => el.classList.add('sel'));
     const row = document.querySelector('#reg-rows tr[data-id="' + CSS.escape(id) + '"]');
     if (row) row.classList.add('sel');
-    if (zoom) {
-      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-      els.forEach((el) => {
-        const r = el.getBoundingClientRect(), a = toSvg(r.left, r.top), b = toSvg(r.right, r.bottom);
-        x0 = Math.min(x0, a.x); y0 = Math.min(y0, a.y); x1 = Math.max(x1, b.x); y1 = Math.max(y1, b.y);
-      });
-      if (isFinite(x0)) fitBox(x0, y0, x1, y1);
-    }
+    if (zoom) zoomTo(els);
     return row;
   }
+
+  // ---------- Notes: the rail, and a numbered circle on each box a note names ----------
+  const notesOf = () => (current && current.callouts) || [];
+  function targetsOf(note) {
+    const els = [];
+    note.targets.forEach((t) => {
+      if (nodes[t]) els.push(nodes[t]);
+      else if (parts[t]) els.push(parts[t].label, parts[t].path);
+    });
+    return els.filter(Boolean);
+  }
+  function renderNotes() {
+    const list = svg ? notesOf() : [];
+    $('rail').hidden = !list.length;
+    $('work').classList.toggle('has-notes', list.length > 0);
+    const hasTbc = list.some((n) => n.toConfirm);
+    $('tbc-wrap').hidden = !hasTbc;
+    // A hidden filter must not stay on, or a diagram with no points to confirm shows no notes.
+    if (!hasTbc) $('note-tbc').checked = false;
+    $('notes').innerHTML = list.map((n) =>
+      '<div class="note' + (n.toConfirm ? ' tbc' : '') + '" tabindex="0" data-code="' + esc(n.code) + '">' +
+      '<span class="code">' + esc(n.code) + '</span>' + n.html +
+      (n.toConfirm ? ' <span class="flag">To confirm</span>' : '') + '</div>').join('');
+    filterNotes();
+    if (!svg) return;
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'badges');
+    svg.appendChild(g);
+    const stack = new Map();
+    list.forEach((n) => {
+      const el = targetsOf(n)[0];
+      if (!el) return;
+      const r = el.getBoundingClientRect(), p = toSvg(r.right, r.top);
+      const k = stack.get(el) || 0;
+      stack.set(el, k + 1);
+      const b = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      b.setAttribute('class', 'badge' + (n.toConfirm ? ' tbc' : ''));
+      b.dataset.code = n.code;
+      const rad = n.code.length > 2 ? 13 : 11;
+      b.setAttribute('transform', 'translate(' + (p.x - k * (rad * 2 + 3)) + ',' + p.y + ')');
+      b.innerHTML = '<title></title><circle r="' + rad + '"></circle><text></text>';
+      b.querySelector('title').textContent = n.code + ': ' + n.text;
+      b.querySelector('text').textContent = n.code;
+      g.appendChild(b);
+    });
+  }
+  function filterNotes() {
+    const q = $('note-search').value.trim().toLowerCase(), only = $('note-tbc').checked;
+    const list = notesOf();
+    let shown = 0;
+    document.querySelectorAll('#notes .note').forEach((el, i) => {
+      const n = list[i];
+      const ok = n && (!only || n.toConfirm) && (!q || (n.code + ' ' + n.text).toLowerCase().includes(q));
+      el.hidden = !ok;
+      if (ok) shown++;
+    });
+    $('note-count').textContent = shown === list.length ? String(list.length) : shown + ' of ' + list.length;
+  }
+  function selectNote(code, zoom) {
+    const n = notesOf().find((x) => x.code === code);
+    if (!n) return null;
+    clearSel();
+    selected = 'note:' + code;
+    const card = document.querySelector('#notes .note[data-code="' + CSS.escape(code) + '"]');
+    if (card) card.classList.add('sel');
+    const els = targetsOf(n);
+    if (svg && els.length) {
+      svg.classList.add('has-sel');
+      els.forEach((el) => el.classList.add('sel'));
+      svg.querySelectorAll('.badge[data-code="' + CSS.escape(code) + '"]').forEach((b) => b.classList.add('sel'));
+      if (zoom) zoomTo(els);
+    }
+    return card;
+  }
+  $('note-search').addEventListener('input', filterNotes);
+  $('note-tbc').addEventListener('change', filterNotes);
+  $('notes').addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    const card = e.target.closest('.note');
+    if (!card) return;
+    if (selected === 'note:' + card.dataset.code) { clearSel(); return; }
+    selectNote(card.dataset.code, true);
+  });
+  $('notes').addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.note')) { e.preventDefault(); e.target.click(); }
+  });
   stage.addEventListener('click', (e) => {
     if (moved > 6) return;
+    const badge = e.target.closest('.badge');
+    if (badge) {
+      if (selected === 'note:' + badge.dataset.code) return clearSel();
+      const card = selectNote(badge.dataset.code, false);
+      if (card) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
     const g = e.target.closest('.edgeLabels > .edgeLabel');
     if (g && g.dataset.id) {
       if (selected === g.dataset.id) return clearSel();
@@ -454,12 +662,13 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
       if (p.label) p.label.classList.toggle('off', off);
     });
     document.querySelectorAll('#reg-rows tr').forEach((t) => { t.hidden = filter !== 'all' && t.dataset.group !== filter; });
-    if (selected && filter !== 'all' && groupOf[selected] !== filter) clearSel();
+    // The filter is for integrations only, so a selected note stays selected.
+    if (selected && !selected.startsWith('note:') && filter !== 'all' && groupOf[selected] !== filter) clearSel();
   }
 
   // ---------- Navigation and live reload ----------
   select.addEventListener('change', () => { location.hash = select.value; });
-  window.addEventListener('hashchange', () => { if (manifest) show(pick(), false); });
+  window.addEventListener('hashchange', async () => { if (manifest) show(await pickFresh(), false); });
 
   function connectLive() {
     const el = $('live');
@@ -472,7 +681,8 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
       setTimeout(() => el.classList.remove('flash'), 400);
       try {
         await loadManifest();
-        const d = manifest.diagrams.find((x) => x.slug === (current && current.slug)) || pick();
+        // The diagram the link names, else the one on screen (a page opened with no link), else the first.
+        const d = find() || (current && manifest.diagrams.find((x) => x.slug === current.slug)) || pick();
         await show(d, true);
       } catch (e) { showError(e.message); }
     });
@@ -481,7 +691,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   (async function start() {
     try {
       await loadManifest();
-      await show(pick(), false);
+      await show(await pickFresh(), false);
       if (manifest.live) connectLive();
     } catch (e) {
       emptyEl.hidden = true;

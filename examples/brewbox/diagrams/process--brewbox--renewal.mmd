@@ -20,6 +20,9 @@ config:
 %% approved-by: Head of E-commerce, 2026-11-04
 %% last-verified: 2026-11-04
 %% notes: What happens each month when a subscription renews, including failed payments?
+%% note R1 s1: The schedule runs at 02:00 UTC, so a renewal order is ready before the warehouse starts work.
+%% note R2 s3 [to confirm]: Finance wants a second email after 48 hours. The Head of E-commerce decides.
+%% note R3 s5: A paused subscription keeps its saved card. The customer starts it again from their account.
 flowchart LR
   subgraph C["Customer"]
     direction TB

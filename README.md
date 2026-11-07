@@ -82,13 +82,14 @@ The kit is also a small command, `arch-diagrams`. A project needs no copy of it:
 from the project's root, pinned to a tag. It needs Node.js 20 or later, and Chrome for exports.
 
 ```bash
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.1.0 serve --open    # viewer on http://localhost:4800
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.1.0 export          # SVGs in diagrams/_rendered/, fails on errors
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.1.0 build           # .diagrams-site/, the copy to publish
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.2.0 serve --open    # viewer on http://localhost:4800
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.2.0 export          # SVGs in diagrams/_rendered/, fails on errors
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.2.0 build           # .diagrams-site/, the copy to publish
 ```
 
-It reads `docs/architecture/diagrams/*.mmd` and `docs/architecture/PROJECT.md`. Use `--dir` and
-`--project` when a project keeps them somewhere else. Add `.diagrams-site/` to the project's
+It reads `docs/architecture/diagrams/*.mmd`, `docs/architecture/PROJECT.md` and, if there is one,
+`docs/architecture/theme.json`. Use `--dir`, `--project` and `--theme` when a project keeps them
+somewhere else. Add `.diagrams-site/` to the project's
 `.gitignore`.
 
 | Command | What it does |
@@ -102,12 +103,47 @@ diagram to show that integration and its two systems; a row click also zooms to 
 show integrations by status: built or in test, not built yet, or retiring. The rows come from the
 Integrations registry in `PROJECT.md`.
 
+**Notes.** The `%% note` lines of a diagram (house style, section 2) show in a rail beside it. The
+code of each note is in a circle on the box that the note names. Click a circle to find its note,
+or click a note to zoom to its boxes. Search the notes, or show only the points to confirm, which
+are yellow.
+
+### Project themes
+
+A project can show its diagrams and the viewer in its own brand. Put a `theme.json` beside
+`PROJECT.md` (or give its path with `--theme`). The `.mmd` files keep the house colours; the
+viewer and `export` change them as the theme says, so the diagrams stay the same on every project.
+
+```json
+{
+  "name": "Acme",
+  "fonts": {
+    "stylesheet": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap",
+    "heading": "Inter, Arial, sans-serif",
+    "body": "Arial, Helvetica, sans-serif"
+  },
+  "light": { "--bg": "#F4F7F9", "--accent": "#0B5FFF", "--accent-ink": "#FFFFFF" },
+  "dark": { "--bg": "#0B1220", "--accent": "#6EA0FF", "--accent-ink": "#0B1220" },
+  "recolor": { "#1F6FA8": "#0B5FFF", "#15527D": "#0847BF" }
+}
+```
+
+| Key | What it does |
+|---|---|
+| `fonts.stylesheet` | A Google Fonts stylesheet. It must be a `https://fonts.googleapis.com/` URL, because a published claude.ai page loads fonts only from there. |
+| `fonts.heading`, `fonts.body` | The CSS font lists for the viewer's headings and text |
+| `light`, `dark` | Values for the viewer's CSS variables (`--bg`, `--surface`, `--fg`, `--muted`, `--line`, `--accent`, `--accent-ink`, `--sel` and others in `viewer/index.html`), for light and dark mode |
+| `recolor` | House colour → project colour, as `#RRGGBB`. It applies to every colour in the diagram text: the header's theme variables, `classDef` and `style` lines. `export` uses it too, so the SVGs in `_rendered/` have the project's colours. |
+
+Keep the meaning of each class when you change its colour: `planned` must still look different
+from built, and `tbc` must still stand out.
+
 The viewer pins Mermaid 11.17.2 and draws the same picture as the export. Cursor's preview and
 mermaid.live can look different: they use their own Mermaid version and settings.
 
 To try it on the worked example, run `npm run demo` in this repo. To work on the kit itself, run it
 from a clone: `node ~/Work/arch-diagram-kit/bin/arch-diagrams.mjs serve` in the project's root.
-For a new version, change `package.json`, tag it (`v0.2.0`), push the tag, and change the pin in
+For a new version, change `package.json`, tag it (`v0.3.0`), push the tag, and change the pin in
 each project's `PROJECT.md`.
 
 ## Everyday use
