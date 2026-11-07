@@ -1,0 +1,23 @@
+{
+  "name": "arch-diagram-kit",
+  "version": "0.1.0",
+  "description": "Architecture diagrams in Mermaid: a viewer with pan, zoom and reload on save, exports and a publishable copy",
+  "type": "module",
+  "bin": {
+    "arch-diagrams": "bin/arch-diagrams.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "viewer/"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "demo": "node bin/arch-diagrams.mjs serve --dir examples/brewbox/diagrams --project examples/brewbox/PROJECT.md --open"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

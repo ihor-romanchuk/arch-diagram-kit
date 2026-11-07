@@ -1,0 +1,492 @@
+<title>Architecture Diagrams</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one working surface. Diagram picker and meta on top, a white drawing board (the house
+   diagram style is light-only), then the registry rows for the integrations the diagram shows. */
+:root {
+  --bg: #F3F6F8;
+  --surface: #FFFFFF;
+  --fg: #1C2A35;
+  --muted: #586874;
+  --line: #D3DCE3;
+  --accent: #1F6FA8;
+  --accent-ink: #FFFFFF;
+  --sel: #FFF4CC;
+  --planned: #C2410C;
+  --ok: #3C8D6B;
+  --err: #B42318;
+  --err-bg: #FEF3F2;
+  --board: #FFFFFF;
+  --board-line: #D3DCE3;
+  --font: "IBM Plex Sans", Arial, Helvetica, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1820; --surface: #16222C; --fg: #E4EBF0; --muted: #9AABB8; --line: #2A3B48;
+    --accent: #5AA6DC; --accent-ink: #0F1820; --sel: #3A3416; --planned: #F08A5D; --ok: #6CC3A0;
+    --err: #FDA29B; --err-bg: #3A1A17; --board: #FFFFFF; --board-line: #2A3B48; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1820; --surface: #16222C; --fg: #E4EBF0; --muted: #9AABB8; --line: #2A3B48;
+  --accent: #5AA6DC; --accent-ink: #0F1820; --sel: #3A3416; --planned: #F08A5D; --ok: #6CC3A0;
+  --err: #FDA29B; --err-bg: #3A1A17; --board: #FFFFFF; --board-line: #2A3B48; color-scheme: dark;
+}
+html, body { background: var(--bg); color: var(--fg); }
+body {
+  font: 15px/1.5 var(--font);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 40px;
+}
+.wrap { max-width: 1680px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
+.brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; min-width: 0; }
+h1 { margin: 0; font-size: 1.35rem; font-weight: 600; text-wrap: balance; }
+.project { font-size: .85rem; color: var(--muted); }
+.live { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--muted); font-family: var(--mono); }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.live.on i { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+.live.flash i { background: var(--accent); }
+
+.picker { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+label.lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+select {
+  font: 500 .9rem var(--font); color: var(--fg); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 10px; min-height: 34px; max-width: 100%;
+}
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .82rem; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 500; }
+.meta .mono { font-family: var(--mono); }
+.question { margin: 0; max-width: 90ch; color: var(--fg); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.group-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-right: 2px; }
+button {
+  font: 500 .85rem var(--font); color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 11px; cursor: pointer; min-height: 32px;
+}
+button:hover { border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:focus-visible, select:focus-visible, tr:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.zoom-level { font-family: var(--mono); font-size: .8rem; color: var(--muted); min-width: 4.5ch; text-align: right; font-variant-numeric: tabular-nums; }
+
+.board {
+  position: relative; background: var(--board); border: 1px solid var(--board-line); border-radius: 8px;
+  height: clamp(420px, 74vh, 900px); overflow: hidden; touch-action: none; cursor: grab;
+}
+.board.dragging { cursor: grabbing; }
+.stage, .stage > svg { width: 100%; height: 100%; display: block; }
+.stage > svg { user-select: none; -webkit-user-select: none; max-width: none !important; }
+.hint {
+  position: absolute; left: 12px; bottom: 10px; font-size: .76rem; color: #4B5B68;
+  background: rgba(255,255,255,.92); border: 1px solid #D3DCE3; border-radius: 4px; padding: 3px 8px; pointer-events: none;
+}
+.empty { position: absolute; inset: 0; display: grid; place-items: center; color: #4B5B68; font-size: .95rem; padding: 24px; text-align: center; }
+.error {
+  position: absolute; top: 10px; right: 10px; left: 10px; max-height: 45%; overflow: auto;
+  background: var(--err-bg); color: var(--err); border: 1px solid var(--err); border-radius: 6px;
+  font: .8rem/1.45 var(--mono); padding: 10px 12px; white-space: pre-wrap;
+}
+
+.stage svg .edgeLabels > .edgeLabel { cursor: pointer; }
+.stage svg .edgePaths path, .stage svg .edgeLabels > .edgeLabel, .stage svg .node, .stage svg .cluster { transition: opacity .15s; }
+.stage svg.has-sel .edgePaths path:not(.sel),
+.stage svg.has-sel .edgeLabels > .edgeLabel:not(.sel),
+.stage svg.has-sel .node:not(.sel) { opacity: .14; }
+.stage svg.has-sel .cluster { opacity: .4; }
+.stage svg .edgePaths path.off, .stage svg .edgeLabels > .edgeLabel.off { opacity: .1; }
+.stage svg .edgePaths path.sel { stroke-width: 3.5px !important; }
+.stage svg .edgeLabels > .edgeLabel.sel .labelBkg, .stage svg .edgeLabels > .edgeLabel.sel foreignObject div { background: #FFE58A !important; }
+
+h2 { margin: 6px 0 0; font-size: 1rem; font-weight: 600; }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: .85rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; background: var(--surface); }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+tbody tr.sel { background: var(--sel); }
+tbody tr:last-child td { border-bottom: 0; }
+td:first-child { font-family: var(--mono); white-space: nowrap; }
+td a { color: var(--accent); }
+td code, .foot code { font-family: var(--mono); font-size: .85em; }
+.chip { display: inline-block; font-family: var(--mono); font-size: .7rem; letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; border: 1px solid var(--muted); color: var(--muted); }
+.chip.g-built { color: var(--accent); border-color: var(--accent); }
+.chip.g-future { color: var(--planned); border-color: var(--planned); border-style: dashed; }
+.chip.g-retiring { text-decoration: line-through; }
+.foot { font-size: .8rem; color: var(--muted); margin: 0; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .stage svg * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1 id="title">Architecture Diagrams</h1>
+      <span class="project" id="project"></span>
+    </div>
+    <span class="live" id="live" hidden><i></i><span id="live-text">Live · reloads on save</span></span>
+  </header>
+
+  <div class="picker">
+    <label class="lbl" for="diagram">Diagram</label>
+    <select id="diagram"></select>
+  </div>
+  <div class="meta" id="meta"></div>
+  <p class="question" id="question" hidden></p>
+
+  <div class="toolbar">
+    <div class="group" role="group" aria-label="Show integrations" id="filters" hidden>
+      <span class="group-label">Show</span>
+      <button id="f-all" data-filter="all" aria-pressed="true">All</button>
+      <button id="f-built" data-filter="built" aria-pressed="false">Built or in test</button>
+      <button id="f-future" data-filter="future" aria-pressed="false">Not built yet</button>
+      <button id="f-retiring" data-filter="retiring" aria-pressed="false">Retiring</button>
+    </div>
+    <div class="group" role="group" aria-label="Zoom">
+      <button id="z-out" aria-label="Zoom out">−</button>
+      <span class="zoom-level" id="z-level">100%</span>
+      <button id="z-in" aria-label="Zoom in">+</button>
+      <button id="z-fit">Fit</button>
+    </div>
+  </div>
+
+  <div class="board" id="board">
+    <div class="stage" id="stage"></div>
+    <div class="empty" id="empty">Loading diagrams…</div>
+    <div class="error" id="error" role="alert" hidden></div>
+    <div class="hint">Drag to pan · scroll or pinch to zoom · click an edge label to pick an integration</div>
+  </div>
+
+  <section id="registry" hidden>
+    <h2>Integrations in this diagram</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr id="reg-head"></tr></thead>
+        <tbody id="reg-rows"></tbody>
+      </table>
+    </div>
+  </section>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const board = $('board'), stage = $('stage'), errorEl = $('error'), emptyEl = $('empty');
+  const select = $('diagram');
+  let manifest = null, current = null, renderSeq = 0;
+  let svg = null, base = null, vb = null, parts = {}, nodes = {}, selected = null, filter = 'all';
+
+  mermaid.initialize({ startOnLoad: false, securityLevel: 'strict' });
+
+  // ---------- Loading ----------
+  async function getText(url) {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error(url + ': HTTP ' + r.status);
+    return r.text();
+  }
+  async function loadManifest() {
+    manifest = JSON.parse(await getText('manifest.json'));
+    $('project').textContent = manifest.project || '';
+    const keep = select.value;
+    select.innerHTML = '';
+    manifest.diagrams.forEach((d) => {
+      const o = document.createElement('option');
+      o.value = d.slug;
+      o.textContent = (d.id ? d.id + ' · ' : '') + (d.title || d.file);
+      select.appendChild(o);
+    });
+    if (keep) select.value = keep;
+    const src = manifest.source || {};
+    $('foot').innerHTML = 'Source: <code>' + esc(src.dir || '') + '</code>' +
+      (src.project ? ' and <code>' + esc(src.project) + '</code>' : '') +
+      '. The repo is correct where this page does not agree with it.';
+    if (!manifest.diagrams.length) emptyEl.textContent = 'No .mmd files in ' + (src.dir || 'the diagram folder') + '.';
+  }
+  function slugFromHash() { return decodeURIComponent(location.hash.replace(/^#/, '')).toLowerCase(); }
+  function pick() {
+    const want = slugFromHash();
+    return manifest.diagrams.find((d) => d.slug === want) || manifest.diagrams[0];
+  }
+
+  async function show(d, keepView) {
+    if (!d) return;
+    const seq = ++renderSeq;
+    if (current && current.slug !== d.slug) keepView = false;
+    current = d;
+    select.value = d.slug;
+    document.title = (d.id ? d.id + ' · ' : '') + (manifest.project || 'Architecture Diagrams');
+    $('title').textContent = d.title || d.file;
+    renderMeta(d);
+    let text;
+    try {
+      text = await getText('diagrams/' + encodeURIComponent(d.file));
+    } catch (e) { return showError(e.message); }
+    let out;
+    try {
+      out = await mermaid.render('dg' + seq, text);
+    } catch (e) {
+      document.getElementById('ddg' + seq)?.remove();
+      if (seq === renderSeq) showError('The diagram has an error. The last good version stays on screen.\n\n' + (e.message || e));
+      return;
+    }
+    if (seq !== renderSeq) return;
+    errorEl.hidden = true;
+    emptyEl.hidden = true;
+    const oldVb = keepView && vb ? vb.slice() : null;
+    const oldSel = keepView ? selected : null;
+    stage.innerHTML = out.svg;
+    svg = stage.querySelector('svg');
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+    svg.style.maxWidth = 'none';
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    base = svg.getAttribute('viewBox').split(/[\s,]+/).map(Number);
+    vb = oldVb || base.slice();
+    apply();
+    wire();
+    applyFilter();
+    if (oldSel && parts[oldSel]) select_(oldSel, false);
+  }
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.hidden = false;
+    if (!svg) emptyEl.hidden = true;
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function renderMeta(d) {
+    const bits = [];
+    if (d.id) bits.push('<span class="mono"><b>' + esc(d.id) + '</b></span>');
+    if (d.type) bits.push(esc(d.type));
+    if (d.status) bits.push('Status <b>' + esc(d.status) + '</b>');
+    if (d.audience) bits.push('Audience ' + esc(d.audience));
+    if (d.owner) bits.push('Owner ' + esc(d.owner));
+    if (d.approvedBy) bits.push('Approved by ' + esc(d.approvedBy));
+    if (d.lastVerified) bits.push('Verified <span class="mono">' + esc(d.lastVerified) + '</span>');
+    bits.push('<span class="mono">' + esc(d.file) + '</span>');
+    $('meta').innerHTML = bits.join('<span aria-hidden="true">·</span>');
+    $('question').hidden = !d.notes;
+    $('question').textContent = d.notes || '';
+  }
+
+  // ---------- Pan and zoom ----------
+  const levelEl = $('z-level');
+  function apply() {
+    if (!svg) return;
+    svg.setAttribute('viewBox', vb.join(' '));
+    levelEl.textContent = Math.round(base[2] / vb[2] * 100) + '%';
+  }
+  function toSvg(cx, cy) {
+    const m = svg && svg.getScreenCTM();
+    if (!m) return { x: vb[0] + vb[2] / 2, y: vb[1] + vb[3] / 2 };
+    const p = new DOMPoint(cx, cy).matrixTransform(m.inverse());
+    return { x: p.x, y: p.y };
+  }
+  function zoomAt(factor, cx, cy) {
+    if (!svg) return;
+    const w = Math.min(base[2] * 1.6, Math.max(base[2] / 16, vb[2] / factor));
+    const f = vb[2] / w, p = toSvg(cx, cy);
+    vb = [p.x - (p.x - vb[0]) / f, p.y - (p.y - vb[1]) / f, w, vb[3] / f];
+    apply();
+  }
+  function zoomCentre(factor) {
+    const r = board.getBoundingClientRect();
+    zoomAt(factor, r.left + r.width / 2, r.top + r.height / 2);
+  }
+  function fit() { if (svg) { vb = base.slice(); apply(); } }
+  function fitBox(x0, y0, x1, y1) {
+    const pad = 80, r = board.getBoundingClientRect(), aspect = r.width / r.height;
+    let w = Math.max(x1 - x0 + pad * 2, base[2] / 10), h = y1 - y0 + pad * 2;
+    if (w / h < aspect) w = h * aspect;
+    w = Math.min(w, base[2]);
+    h = w / aspect;
+    vb = [(x0 + x1) / 2 - w / 2, (y0 + y1) / 2 - h / 2, w, h];
+    apply();
+  }
+  board.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.012 : 0.0025)), e.clientX, e.clientY);
+  }, { passive: false });
+  const ptrs = new Map();
+  let moved = 0, pinch = null;
+  board.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.target.closest('.error')) return;
+    board.setPointerCapture(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    moved = 0;
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); }
+    board.classList.add('dragging');
+  });
+  board.addEventListener('pointermove', (e) => {
+    const prev = ptrs.get(e.pointerId);
+    if (!prev || !svg) return;
+    const cur = { x: e.clientX, y: e.clientY };
+    if (ptrs.size === 1) {
+      const p0 = toSvg(prev.x, prev.y), p1 = toSvg(cur.x, cur.y);
+      vb[0] -= p1.x - p0.x; vb[1] -= p1.y - p0.y;
+      moved += Math.abs(cur.x - prev.x) + Math.abs(cur.y - prev.y);
+      apply();
+    }
+    ptrs.set(e.pointerId, cur);
+    if (ptrs.size === 2 && pinch) {
+      const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+      zoomAt(d / pinch, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      pinch = d; moved += 10;
+    }
+  });
+  const endPtr = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) board.classList.remove('dragging'); };
+  board.addEventListener('pointerup', endPtr);
+  board.addEventListener('pointercancel', endPtr);
+  $('z-in').onclick = () => zoomCentre(1.3);
+  $('z-out').onclick = () => zoomCentre(1 / 1.3);
+  $('z-fit').onclick = fit;
+
+  // ---------- Integrations: edge labels <-> registry rows ----------
+  const reg = () => manifest && manifest.registries && manifest.registries.integrations;
+  function wire() {
+    parts = {}; nodes = {}; selected = null;
+    svg.querySelectorAll('g.node').forEach((g) => {
+      const m = g.id.match(/flowchart-(.+)-\d+$/);
+      if (m) nodes[m[1]] = g;
+    });
+    const paths = [...svg.querySelectorAll('.edgePaths path')];
+    const labels = [...svg.querySelectorAll('.edgeLabels > .edgeLabel')];
+    const ids = Object.keys(nodes).sort((a, b) => b.length - a.length);
+    labels.forEach((g, i) => {
+      const m = (g.textContent || '').match(/\bI-\d+\b/);
+      if (!m) return;
+      const path = paths[i];
+      const ends = path ? endsOf(path.id, ids) : [];
+      parts[m[0]] = { label: g, path, ends };
+      g.dataset.id = m[0];
+    });
+    renderRegistry();
+  }
+  // Path ids look like "L_<from>_<to>_<n>"; node ids may hold "_", so match them against the node list.
+  function endsOf(pathId, ids) {
+    const core = (pathId.match(/L_(.+)_\d+$/) || [])[1];
+    if (!core) return [];
+    for (const a of ids) {
+      if (core.startsWith(a + '_') && ids.includes(core.slice(a.length + 1))) return [a, core.slice(a.length + 1)];
+    }
+    return [];
+  }
+  function renderRegistry() {
+    const r = reg();
+    const present = r ? r.rows.filter((row) => parts[row.id]) : [];
+    $('registry').hidden = !present.length;
+    $('filters').hidden = !present.length;
+    if (!present.length) { $('reg-rows').innerHTML = ''; return; }
+    $('reg-head').innerHTML = r.headers.map((h) => '<th>' + esc(h) + '</th>').join('');
+    $('reg-rows').innerHTML = present.map((row) =>
+      '<tr tabindex="0" data-id="' + esc(row.id) + '" data-group="' + row.group + '">' +
+      row.cells.map((c, i) => '<td>' + (i === r.statusColumn ? '<span class="chip g-' + row.group + '">' + c + '</span>' : c) + '</td>').join('') +
+      '</tr>').join('');
+  }
+  function clearSel() {
+    selected = null;
+    if (!svg) return;
+    svg.classList.remove('has-sel');
+    svg.querySelectorAll('.sel').forEach((el) => el.classList.remove('sel'));
+    document.querySelectorAll('#reg-rows tr.sel').forEach((t) => t.classList.remove('sel'));
+  }
+  function select_(id, zoom) {
+    const p = parts[id];
+    if (!p) return null;
+    clearSel();
+    selected = id;
+    svg.classList.add('has-sel');
+    const els = [p.path, p.label, ...p.ends.map((n) => nodes[n])].filter(Boolean);
+    els.forEach((el) => el.classList.add('sel'));
+    const row = document.querySelector('#reg-rows tr[data-id="' + CSS.escape(id) + '"]');
+    if (row) row.classList.add('sel');
+    if (zoom) {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      els.forEach((el) => {
+        const r = el.getBoundingClientRect(), a = toSvg(r.left, r.top), b = toSvg(r.right, r.bottom);
+        x0 = Math.min(x0, a.x); y0 = Math.min(y0, a.y); x1 = Math.max(x1, b.x); y1 = Math.max(y1, b.y);
+      });
+      if (isFinite(x0)) fitBox(x0, y0, x1, y1);
+    }
+    return row;
+  }
+  stage.addEventListener('click', (e) => {
+    if (moved > 6) return;
+    const g = e.target.closest('.edgeLabels > .edgeLabel');
+    if (g && g.dataset.id) {
+      if (selected === g.dataset.id) return clearSel();
+      const row = select_(g.dataset.id, false);
+      if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    } else if (!e.target.closest('.node')) clearSel();
+  });
+  $('reg-rows').addEventListener('click', (e) => {
+    if (e.target.closest('a')) return;
+    const tr = e.target.closest('tr');
+    if (!tr) return;
+    if (selected === tr.dataset.id) { clearSel(); return; }
+    select_(tr.dataset.id, true);
+    board.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+  $('reg-rows').addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr')) { e.preventDefault(); e.target.click(); }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') clearSel(); });
+
+  const fbtns = [...document.querySelectorAll('[data-filter]')];
+  fbtns.forEach((b) => b.addEventListener('click', () => { filter = b.dataset.filter; applyFilter(); }));
+  function applyFilter() {
+    fbtns.forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === filter)));
+    const r = reg();
+    const groupOf = {};
+    if (r) r.rows.forEach((row) => { groupOf[row.id] = row.group; });
+    Object.entries(parts).forEach(([id, p]) => {
+      const off = filter !== 'all' && groupOf[id] !== filter;
+      if (p.path) p.path.classList.toggle('off', off);
+      if (p.label) p.label.classList.toggle('off', off);
+    });
+    document.querySelectorAll('#reg-rows tr').forEach((t) => { t.hidden = filter !== 'all' && t.dataset.group !== filter; });
+    if (selected && filter !== 'all' && groupOf[selected] !== filter) clearSel();
+  }
+
+  // ---------- Navigation and live reload ----------
+  select.addEventListener('change', () => { location.hash = select.value; });
+  window.addEventListener('hashchange', () => { if (manifest) show(pick(), false); });
+
+  function connectLive() {
+    const el = $('live');
+    el.hidden = false;
+    const es = new EventSource('events');
+    es.onopen = () => { el.classList.add('on'); $('live-text').textContent = 'Live · reloads on save'; };
+    es.onerror = () => { el.classList.remove('on'); $('live-text').textContent = 'Live · reconnecting…'; };
+    es.addEventListener('change', async () => {
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 400);
+      try {
+        await loadManifest();
+        const d = manifest.diagrams.find((x) => x.slug === (current && current.slug)) || pick();
+        await show(d, true);
+      } catch (e) { showError(e.message); }
+    });
+  }
+
+  (async function start() {
+    try {
+      await loadManifest();
+      await show(pick(), false);
+      if (manifest.live) connectLive();
+    } catch (e) {
+      emptyEl.hidden = true;
+      showError('The viewer could not load its files.\n\n' + (e.message || e));
+    }
+  })();
+})();
+</script>

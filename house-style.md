@@ -16,6 +16,7 @@ These rules apply to every diagram on every project. A diagram is "done" only wh
 title: <System or scope> · <Diagram type>
 config:
   theme: base
+  fontFamily: "Arial, Helvetica, sans-serif"
   themeVariables:
     fontFamily: "Arial, Helvetica, sans-serif"
     primaryColor: "#EAF2F9"
@@ -44,7 +45,9 @@ config:
 | `last-verified` | The date someone last checked the diagram against reality |
 | `notes` | The question this diagram answers, in one line |
 
-Some renderers run old Mermaid versions and ignore the `config` block. That is fine: the diagram still renders, just with default colours. Export SVG with `scripts/render.sh` when the colours matter.
+Keep both `fontFamily` lines. Mermaid 11 uses only the one directly under `config:`; without it, every renderer falls back to its default font.
+
+Some renderers run old Mermaid versions and ignore the `config` block. That is fine: the diagram still renders, just with default colours. View diagrams with `arch-diagrams serve` and export them with `arch-diagrams export` when the colours matter (see the README).
 
 ## 3. Statuses
 
