@@ -549,7 +549,10 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     const list = svg ? notesOf() : [];
     $('rail').hidden = !list.length;
     $('work').classList.toggle('has-notes', list.length > 0);
-    $('tbc-wrap').hidden = !list.some((n) => n.toConfirm);
+    const hasTbc = list.some((n) => n.toConfirm);
+    $('tbc-wrap').hidden = !hasTbc;
+    // A hidden filter must not stay on, or a diagram with no points to confirm shows no notes.
+    if (!hasTbc) $('note-tbc').checked = false;
     $('notes').innerHTML = list.map((n) =>
       '<div class="note' + (n.toConfirm ? ' tbc' : '') + '" tabindex="0" data-code="' + esc(n.code) + '">' +
       '<span class="code">' + esc(n.code) + '</span>' + n.html +
@@ -659,7 +662,8 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
       if (p.label) p.label.classList.toggle('off', off);
     });
     document.querySelectorAll('#reg-rows tr').forEach((t) => { t.hidden = filter !== 'all' && t.dataset.group !== filter; });
-    if (selected && filter !== 'all' && groupOf[selected] !== filter) clearSel();
+    // The filter is for integrations only, so a selected note stays selected.
+    if (selected && !selected.startsWith('note:') && filter !== 'all' && groupOf[selected] !== filter) clearSel();
   }
 
   // ---------- Navigation and live reload ----------
@@ -677,7 +681,9 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
       setTimeout(() => el.classList.remove('flash'), 400);
       try {
         await loadManifest();
-        await show(pick(), true);
+        // The diagram the link names, else the one on screen (a page opened with no link), else the first.
+        const d = find() || (current && manifest.diagrams.find((x) => x.slug === current.slug)) || pick();
+        await show(d, true);
       } catch (e) { showError(e.message); }
     });
   }
