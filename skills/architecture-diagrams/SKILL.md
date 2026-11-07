@@ -75,11 +75,14 @@ config:
 %% approved-by: <name, date or empty>
 %% last-verified: <YYYY-MM-DD>
 %% notes: <the one question this diagram answers>
+%% note <code> <target,target> [to confirm]: <optional: a note on boxes; see below>
 ```
 
 Keep both `fontFamily` lines: Mermaid 11 uses only the one directly under `config:`, and without it every renderer except a configured one falls back to its default font.
 
 New diagrams start as **Draft**. Take the next free ID from the Diagram index.
+
+**Notes.** Put the reasons, sources and open points that a reader needs in `%% note` lines, not in the boxes: `%% note G1 m_rule,p_check: <text>`. The code is short and unique in the file. The targets are node IDs or `I-xx`, separated by commas with no spaces, and are optional. Add `[to confirm]` before the colon for a point that is not decided, and say what is open and who decides it. A line that starts with `%%` and two or more spaces continues the note. The kit's viewer shows the notes in a rail, with the code in a circle on the first target. Keep box labels short and move the detail to notes.
 
 ### Colour key (end of every flowchart)
 
@@ -90,9 +93,10 @@ New diagrams start as **Draft**. Take the next free ID from the Diagram index.
   classDef external fill:#E8EDF1,stroke:#7A8A97,color:#1C2A35
   classDef store fill:#DDEFE6,stroke:#3C8D6B,color:#12352A
   classDef planned fill:#FFFFFF,stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4,color:#7C2D12
+  classDef tbc fill:#FFF0A8,stroke:#C07A1A,color:#5C4A00
 ```
 
-- `person` people and roles; `internal` systems and code we own; `managed` cloud managed services (API Gateway, EventBridge, Cognito...); `external` other companies' or teams' systems; `store` databases, queues, buckets; `planned` boxes that do not exist yet.
+- `person` people and roles; `internal` systems and code we own; `managed` cloud managed services (API Gateway, EventBridge, Cognito...); `external` other companies' or teams' systems; `store` databases, queues, buckets; `planned` boxes that do not exist yet; `tbc` boxes whose content is not confirmed (give each a `[to confirm]` note).
 - The registry's Class column decides the class.
 - Planned links: `linkStyle <n,m> stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4` (links count from 0 in declaration order).
 - Process diagrams use their own step classes: white steps with blue border, amber decisions (`fill:#FFF4E5,stroke:#B45309`), dark-blue rounded start/end nodes.
@@ -112,7 +116,7 @@ New diagrams start as **Draft**. Take the next free ID from the Diagram index.
 
 ## Step 4: output
 
-- **Diagram kit.** When a shell and Node.js are available, use the `arch-diagrams` command of the arch-diagram-kit repo, from the project root, at the version that `PROJECT.md` pins (else the latest tag): `npx -y github:ihor-romanchuk/arch-diagram-kit#<version> serve` (localhost viewer, pan and zoom, reloads on save), `export` (SVGs in `diagrams/_rendered/`; this is the render check in step 3), `build` (the copy to publish). Nothing of the kit is copied into the project. Do not hand-build a page per diagram.
+- **Diagram kit.** When a shell and Node.js are available, use the `arch-diagrams` command of the arch-diagram-kit repo, from the project root, at the version that `PROJECT.md` pins (else the latest tag): `npx -y github:ihor-romanchuk/arch-diagram-kit#<version> serve` (localhost viewer, pan and zoom, reloads on save), `export` (SVGs in `diagrams/_rendered/`; this is the render check in step 3), `build` (the copy to publish). Nothing of the kit is copied into the project. Do not hand-build a page per diagram. A project's brand goes in `docs/architecture/theme.json` (fonts, viewer colours, and `recolor` from house colours to brand colours); never change the house colours in the `.mmd` files for a brand.
 - Show the rendered diagram when the environment can (the kit's viewer, Mermaid artifact, preview or rendered SVG).
 - Give the full `.mmd` content in one ```mermaid block, with the suggested file name: `<type>--<scope>[--<topic>].mmd` (types: context, integration, process, container, sequence, state, erd, deployment).
 - If the diagram is new or its status changed, give the row to add or change in the `PROJECT.md` Diagram index. If new systems or integrations appeared, give the registry rows.

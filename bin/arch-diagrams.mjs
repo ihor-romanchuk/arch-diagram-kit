@@ -19,6 +19,7 @@ Options for every command:
   --dir      The diagram folder       (default ${DEFAULTS.dir})
   --project  The project file         (default ${DEFAULTS.project})
   --branch   Branch for doc links     (default ${DEFAULTS.branch})
+  --theme    The theme file, optional (default ${DEFAULTS.theme})
 `;
 
 const [command, ...rest] = process.argv.slice(2);
