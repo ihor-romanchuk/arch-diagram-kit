@@ -103,6 +103,10 @@ describe('repoWebUrl and parseArgs', () => {
     assert.equal(repoWebUrl('https://github.com/o/r.git'), 'https://github.com/o/r');
     assert.equal(repoWebUrl(''), '');
   });
+  test('removes a user name or token from an HTTPS remote', () => {
+    assert.equal(repoWebUrl('https://x-access-token:secret@github.com/o/r.git'), 'https://github.com/o/r');
+    assert.equal(repoWebUrl('https://token@github.com/o/r'), 'https://github.com/o/r');
+  });
   test('reads values, flags and file names over the defaults', () => {
     assert.deepEqual(parseArgs(['--port', '5000', '--open', 'a.mmd', '--out=x'], { port: '4800' }),
       { port: '5000', open: true, _: ['a.mmd'], out: 'x' });
