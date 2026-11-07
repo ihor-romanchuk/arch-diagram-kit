@@ -57,6 +57,7 @@ Defaults when the client stack is unknown: AWS services and Node.js. Otherwise u
 title: <Scope> · <Diagram type>
 config:
   theme: base
+  fontFamily: "Arial, Helvetica, sans-serif"
   themeVariables:
     fontFamily: "Arial, Helvetica, sans-serif"
     primaryColor: "#EAF2F9"
@@ -75,6 +76,8 @@ config:
 %% last-verified: <YYYY-MM-DD>
 %% notes: <the one question this diagram answers>
 ```
+
+Keep both `fontFamily` lines: Mermaid 11 uses only the one directly under `config:`, and without it every renderer except a configured one falls back to its default font.
 
 New diagrams start as **Draft**. Take the next free ID from the Diagram index.
 
@@ -105,11 +108,12 @@ New diagrams start as **Draft**. Take the next free ID from the Diagram index.
 
 ## Step 3: review checklist
 
-1. Header complete. 2. Right type for the question in `notes`. 3. One abstraction level. 4. Names match the registry. 5. Colour classes on every box; planned items styled. 6. Every arrow labelled; protocols on tech diagrams. 7. Within size limits. 8. Integrations carry `I-xx` and status. 9. Readable by the stated audience. 10. Renders: when a shell is available, run `mmdc -i file.mmd -o /tmp/check.svg`; otherwise check syntax carefully (quote labels with special characters, `<br/>` for line breaks, no unescaped parentheses in unquoted labels).
+1. Header complete. 2. Right type for the question in `notes`. 3. One abstraction level. 4. Names match the registry. 5. Colour classes on every box; planned items styled. 6. Every arrow labelled; protocols on tech diagrams. 7. Within size limits. 8. Integrations carry `I-xx` and status. 9. Readable by the stated audience. 10. Renders: when a shell is available, run the kit's `export` (or `mmdc -i file.mmd -o /tmp/check.svg`); otherwise check syntax carefully (quote labels with special characters, `<br/>` for line breaks, no unescaped parentheses in unquoted labels).
 
 ## Step 4: output
 
-- Show the rendered diagram when the environment can (Mermaid artifact, preview or rendered SVG).
+- **Diagram kit.** When a shell and Node.js are available, use the `arch-diagrams` command of the arch-diagram-kit repo, from the project root, at the version that `PROJECT.md` pins (else the latest tag): `npx -y github:ihor-romanchuk/arch-diagram-kit#<version> serve` (localhost viewer, pan and zoom, reloads on save), `export` (SVGs in `diagrams/_rendered/`; this is the render check in step 3), `build` (the copy to publish). Nothing of the kit is copied into the project. Do not hand-build a page per diagram.
+- Show the rendered diagram when the environment can (the kit's viewer, Mermaid artifact, preview or rendered SVG).
 - Give the full `.mmd` content in one ```mermaid block, with the suggested file name: `<type>--<scope>[--<topic>].mmd` (types: context, integration, process, container, sequence, state, erd, deployment).
 - If the diagram is new or its status changed, give the row to add or change in the `PROJECT.md` Diagram index. If new systems or integrations appeared, give the registry rows.
 - When a repo or folder is available, write the file to `docs/architecture/diagrams/` (or the folder named in `PROJECT.md`) instead of only printing it.
@@ -128,6 +132,7 @@ Steps 0 to 4. Ask at most one question first, and only if the type or scope is t
 
 ### Live session ("start a live session on PRC-01")
 The user is screen-sharing this chat with stakeholders.
+- With the diagram kit: start `serve` in the background if it is not running, and tell the user to share the viewer at `http://localhost:4800/#<id>`. For each change, only edit the `.mmd`: the viewer shows it on save, so do not render it in chat. Keep each turn to the edit and the one line. On "end session", also run `export` and `build`, and publish `.diagrams-site/` to the shared viewer link in `PROJECT.md` (same URL every time).
 - Load the diagram. Reply with the rendered diagram only and one line: "Live session on <ID>. Tell me the changes."
 - For each change request: apply it, show the updated diagram, and reply with **one line**: "Changed: <what>." No explanations, no checklists, no questions unless the request is ambiguous; then ask one short question with options.
 - Keep the layout stable between turns. Use only registry names; if someone names a new system, add it styled as `planned` and note it.
@@ -147,5 +152,6 @@ Read the material given (diagrams, docs, tickets). Produce the Systems registry 
 
 ## Publishing hints
 
+- Shared reference: with the diagram kit, run `build` and publish `.diagrams-site/index.html` with the files it prints as one claude.ai artifact, always to the shared viewer link recorded in `PROJECT.md` (create it on the first publish and record it there). Each publish updates open pages; the link is private until the user shares it.
 - GitHub: ```mermaid block. Azure DevOps wiki: `::: mermaid` block (older Mermaid; fall back to SVG if it fails). Notion: code block, language Mermaid. Confluence: Mermaid marketplace app if available, otherwise attach SVG and link to the `.mmd`.
 - Exports (SVG, PNG) are never edited; regenerate them from the `.mmd`.
