@@ -49,18 +49,19 @@ body {
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 16px 40px;
 }
-.wrap { max-width: 1680px; margin: 0 auto; display: grid; gap: 14px; }
+.wrap { max-width: 1680px; margin: 0 auto; display: grid; gap: 10px; }
 header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; }
 .brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; min-width: 0; }
 h1 { margin: 0; font: 600 1.35rem/1.25 var(--heading); text-wrap: balance; }
 .project { font-size: .85rem; color: var(--muted); }
+.head-tag { font: 500 .78rem var(--mono); color: var(--muted); white-space: nowrap; }
+.head-tag b { color: var(--fg); font-weight: 600; }
+.head-right { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-width: 0; }
 .live { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--muted); font-family: var(--mono); }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
 .live.on i { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
 .live.flash i { background: var(--accent); }
 
-.picker { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-label.lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 select {
   font: 500 .9rem var(--font); color: var(--fg); background: var(--surface); border: 1px solid var(--line);
   border-radius: 6px; padding: 6px 10px; min-height: 34px; max-width: 100%;
@@ -68,7 +69,11 @@ select {
 .meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .82rem; color: var(--muted); }
 .meta b { color: var(--fg); font-weight: 500; }
 .meta .mono { font-family: var(--mono); }
-.question { margin: 0; max-width: 90ch; color: var(--fg); }
+/* Above the diagram: the first sentence of the description only, over the full width. */
+.question { margin: 0; color: var(--fg); }
+.about { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; display: grid; gap: 6px; }
+.about h2 { margin: 0; }
+.about p { margin: 0; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
 .group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -208,9 +213,10 @@ td:first-child { font-family: var(--mono); white-space: nowrap; }
 td a { color: var(--accent); }
 td code, .foot code { font-family: var(--mono); font-size: .85em; }
 .chip { display: inline-block; font-family: var(--mono); font-size: .7rem; letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; border: 1px solid var(--muted); color: var(--muted); }
-.chip.g-built { color: var(--accent); border-color: var(--accent); }
-.chip.g-future { color: var(--planned); border-color: var(--planned); border-style: dashed; }
-.chip.g-retiring { text-decoration: line-through; }
+.chip.g-done { color: var(--accent); border-color: var(--accent); }
+.chip.g-planned { color: var(--planned); border-color: var(--planned); border-style: dashed; }
+.chip.g-open { color: var(--planned); border-color: var(--planned); border-style: dotted; }
+.chip.struck { text-decoration: line-through; }
 .foot { font-size: .8rem; color: var(--muted); margin: 0; }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .stage svg * { transition: none !important; } }
@@ -220,16 +226,14 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   <header>
     <div class="brand">
       <h1 id="title">Architecture Diagrams</h1>
+      <span class="head-tag" id="head-tag"></span>
       <span class="project" id="project"></span>
     </div>
-    <span class="live" id="live" hidden><i></i><span id="live-text">Live · reloads on save</span></span>
+    <div class="head-right">
+      <select id="diagram" aria-label="Diagram"></select>
+      <span class="live" id="live" hidden><i></i><span id="live-text">Live · reloads on save</span></span>
+    </div>
   </header>
-
-  <div class="picker">
-    <label class="lbl" for="diagram">Diagram</label>
-    <select id="diagram"></select>
-  </div>
-  <div class="meta" id="meta"></div>
   <p class="question" id="question" hidden></p>
 
   <section class="viewer" id="viewer" aria-label="Diagram">
@@ -267,6 +271,12 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     </div>
 
     <div class="legend" id="legend" aria-label="Key" hidden></div>
+  </section>
+
+  <section class="about" id="about" aria-labelledby="about-h">
+    <h2 id="about-h">About this diagram</h2>
+    <p id="about-text" hidden></p>
+    <div class="meta" id="meta"></div>
   </section>
 
   <section id="registry" hidden>
@@ -461,19 +471,28 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     if (!svg) emptyEl.hidden = true;
   }
   function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  // The head shows the ID, the status and the first sentence of the description; the rest of the
+  // description and the other header fields are under the diagram, so the head stays short.
+  function splitNotes(text) {
+    const m = String(text || '').match(/^([\s\S]+?[.?!])\s+(?=[A-Z0-9"'(])([\s\S]*)$/);
+    return m ? [m[1], m[2]] : [String(text || ''), ''];
+  }
   function renderMeta(d) {
+    $('head-tag').innerHTML = [d.id && '<b>' + esc(d.id) + '</b>', d.status && esc(d.status)].filter(Boolean).join(' \u00B7 ');
     const bits = [];
-    if (d.id) bits.push('<span class="mono"><b>' + esc(d.id) + '</b></span>');
-    if (d.type) bits.push(esc(d.type));
+    if (d.type) bits.push('Type ' + esc(d.type));
     if (d.status) bits.push('Status <b>' + esc(d.status) + '</b>');
     if (d.audience) bits.push('Audience ' + esc(d.audience));
     if (d.owner) bits.push('Owner ' + esc(d.owner));
     if (d.approvedBy) bits.push('Approved by ' + esc(d.approvedBy));
     if (d.lastVerified) bits.push('Verified <span class="mono">' + esc(d.lastVerified) + '</span>');
     bits.push('<span class="mono">' + esc(d.file) + '</span>');
-    $('meta').innerHTML = bits.join('<span aria-hidden="true">·</span>');
-    $('question').hidden = !d.notes;
-    $('question').textContent = d.notes || '';
+    $('meta').innerHTML = bits.join('<span aria-hidden="true">\u00B7</span>');
+    const [first, rest] = splitNotes(d.notes);
+    $('question').hidden = !first;
+    $('question').textContent = first;
+    $('about-text').hidden = !rest;
+    $('about-text').textContent = rest;
   }
 
   // ---------- Pan and zoom ----------
@@ -708,13 +727,13 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
         if (it.status) el.setAttribute('data-st', statusSlug(it.status));
         if (it.tbc) el.setAttribute('data-tbc', '1');
       });
-      const tip = [it.status && it.status + ': ' + STATUS_MEANINGS[it.status], it.tbc && 'to confirm'].filter(Boolean).join(' · ');
+      const tip = [it.status && STATUS_NAMES[it.status] + ': ' + STATUS_MEANINGS[it.status], it.tbc && 'to confirm'].filter(Boolean).join(' \u00B7 ');
       [it.line, ...(it.texts || []), it.label, it.kind === 'node' || it.kind === 'mnote' ? it.els[0] : null].filter(Boolean).forEach((el) => {
         const t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
         t.textContent = tip;
         el.insertBefore(t, el.firstChild);
       });
-      if (it.status && it.line) tintArrow(it.line, tint(STATUS_STYLES[it.status].color), statusSlug(it.status));
+      if (it.status && it.line) tintArrow(it.line, tint(styleOf(it.status).color), STATUS_GROUPS[it.status]);
     });
   }
   // Path ids look like "L_<from>_<to>_<n>"; node ids may hold "_", so match them against the node list.
@@ -779,7 +798,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     $('reg-head').innerHTML = r.headers.map((h) => '<th>' + esc(h) + '</th>').join('');
     $('reg-rows').innerHTML = present.map((row) =>
       '<tr tabindex="0" data-id="' + esc(row.id) + '" data-group="' + row.group + '">' +
-      row.cells.map((c, i) => '<td>' + (i === r.statusColumn ? '<span class="chip g-' + row.group + '">' + c + '</span>' : c) + '</td>').join('') +
+      row.cells.map((c, i) => '<td>' + (i === r.statusColumn ? '<span class="chip g-' + row.group + (STRUCK.includes(statusWord(row.status)) ? ' struck' : '') + '">' + c + '</span>' : c) + '</td>').join('') +
       '</tr>').join('');
   }
 
@@ -999,7 +1018,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   });
 
   // ---------- The "Show" filter: one status group, for every diagram type ----------
-  const ORDER = ['built', 'future', 'retiring', 'tbc'];
+  const ORDER = ['done', 'planned', 'open', 'tbc'];
   const groupOf = (it) => (it.status ? STATUS_GROUPS[it.status] : null);
   function buildFilters() {
     const present = new Set();
@@ -1046,24 +1065,29 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   }
 
   // ---------- The key under the diagram ----------
-  function lineSample(st) {
-    const s = STATUS_STYLES[st];
+  function lineSample(group) {
+    const s = GROUP_STYLES[group];
     return '<svg width="34" height="10" aria-hidden="true"><line x1="1" y1="5" x2="33" y2="5" stroke="' + tint(s.color) +
       '" stroke-width="2.5"' + (s.dash ? ' stroke-dasharray="' + s.dash + '"' : '') + '/></svg>';
   }
   function renderLegend() {
     const parts = [];
     const used = new Set(items.filter((it) => it.status && it.kind !== 'actor').map((it) => it.status));
-    if (used.size) {
-      parts.push('<span class="lg-group"><span class="lg-head">Status</span>' + STATUSES.filter((s) => used.has(s)).map((s) =>
-        '<span class="lg-item" title="' + esc(s + ': ' + STATUS_MEANINGS[s]) + '">' + lineSample(s) +
-        '<span class="lg-word">' + esc(s) + '</span><small>' + esc(STATUS_MEANINGS[s]) + '</small></span>').join('') + '</span>');
+    const groups = new Set([...used].map((s) => STATUS_GROUPS[s]));
+    if (groups.size) {
+      parts.push('<span class="lg-group"><span class="lg-head">Status</span>' + ['DONE', 'PLANNED', 'OPEN'].filter((s) => groups.has(STATUS_GROUPS[s])).map((s) =>
+        '<span class="lg-item" title="' + esc(STATUS_NAMES[s] + ': ' + STATUS_MEANINGS[s]) + '">' + lineSample(STATUS_GROUPS[s]) +
+        '<b>' + esc(STATUS_NAMES[s]) + '</b><small>' + esc(STATUS_MEANINGS[s]) + '</small></span>').join('') + '</span>');
     }
     const marks = [];
     const tbcUsed = items.some((it) => it.tbc) || notesOf().some((n) => n.toConfirm);
     if (tbcUsed) {
       marks.push('<span class="lg-item"><span class="lg-sw" style="background:' + tint(TBC_STYLE.fill) + ';border-color:' + tint(TBC_STYLE.stroke) +
         '"></span><span><b>Yellow</b> = to confirm: not decided yet. Its note says what is open and who decides.</span></span>');
+    }
+    const struck = STRUCK.filter((x) => used.has(x));
+    if (struck.length) {
+      marks.push('<span class="lg-item"><s>Struck through</s><span>= ' + struck.map((x) => esc(STATUS_NAMES[x].toLowerCase() + ' (' + STATUS_MEANINGS[x].split(': ')[1] + ')')).join('; ') + '</span></span>');
     }
     if (items.some((it) => it.kind === 'mnote' && !it.tbc)) {
       marks.push('<span class="lg-item"><span class="lg-sw" style="background:' + tint(NOTE_THEME.noteBkgColor) + ';border-color:' + tint(NOTE_THEME.noteBorderColor) +

@@ -122,13 +122,14 @@ describe('cellToHtml', () => {
 });
 
 describe('statusGroup', () => {
-  test('groups the house statuses', () => {
-    assert.equal(statusGroup('IN TEST'), 'built');
-    assert.equal(statusGroup('IN BUILD'), 'built');
-    assert.equal(statusGroup('LIVE'), 'built');
-    assert.equal(statusGroup('OPEN'), 'future');
-    assert.equal(statusGroup('PROPOSED'), 'future');
-    assert.equal(statusGroup('RETIRING (replaced by I-01)'), 'retiring');
+  test('groups the house statuses, older words included', () => {
+    assert.equal(statusGroup('DONE'), 'done');
+    assert.equal(statusGroup('IN TEST'), 'done');
+    assert.equal(statusGroup('LIVE'), 'done');
+    assert.equal(statusGroup('IN BUILD'), 'planned');
+    assert.equal(statusGroup('OPEN'), 'open');
+    assert.equal(statusGroup('PROPOSED'), 'open');
+    assert.equal(statusGroup('RETIRING (replaced by I-01)'), 'planned');
     assert.equal(statusGroup('?'), 'other');
   });
 });
@@ -138,7 +139,7 @@ describe('parseProject', () => {
     const p = parseProject(PROJECT, {});
     assert.equal(p.name, 'Architecture project file');
     assert.equal(p.systems, null);
-    assert.deepEqual(p.integrations.rows.map((r) => [r.id, r.group]), [['I-01', 'built'], ['I-02', 'retiring'], ['I-03', 'future']]);
+    assert.deepEqual(p.integrations.rows.map((r) => [r.id, r.group]), [['I-01', 'done'], ['I-02', 'planned'], ['I-03', 'planned']]);
     assert.equal(p.integrations.statusColumn, 2);
   });
 });

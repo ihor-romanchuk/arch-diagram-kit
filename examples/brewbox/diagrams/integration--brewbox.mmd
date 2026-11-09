@@ -27,11 +27,11 @@ flowchart LR
   sap["<b>SAP ERP</b>"]:::external
   wms["<b>3PL Warehouse</b>"]:::external
   crm["<b>HubSpot CRM</b>"]:::external
-  shop -- "I-01 · REST, sync · LIVE" --> stripe
-  stripe -. "I-02 · Webhook into<br/>API Gateway · LIVE" .-> shop
+  shop -- "I-01 · REST, sync · DONE" --> stripe
+  stripe -. "I-02 · Webhook into<br/>API Gateway · DONE" .-> shop
   shop -- "I-03 · Nightly CSV,<br/>S3 + Transfer Family SFTP · RETIRING (replaced by I-04)" --> sap
   shop == "I-04 · EventBridge events,<br/>real time · PLANNED Q1" ==> sap
-  shop -- "I-05 · Transfer Family SFTP,<br/>every 15 min · LIVE" --> wms
+  shop -- "I-05 · Transfer Family SFTP,<br/>every 15 min · DONE" --> wms
   shop == "I-06 · EventBridge<br/>API destination · PLANNED Q2 · TBC" ==> crm
   classDef person fill:#0B3D5C,stroke:#0B3D5C,color:#ffffff
   classDef internal fill:#1F6FA8,stroke:#15527D,color:#ffffff

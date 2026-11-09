@@ -47,7 +47,7 @@ config:
 | `audience` | `business`, `tech` or `business+tech` |
 | `status` | See section 3 |
 | `last-verified` | The date someone last checked the diagram against reality |
-| `notes` | The question this diagram answers, in one line |
+| `notes` | The question this diagram answers, in one sentence. The viewer shows the first sentence above the diagram and the rest under it. |
 | `note` | Optional, as many as necessary. `%% note <code> [targets] [to confirm]: <text>`. The code is short and unique in the file (`G1`, `T1`). The targets are node IDs, sequence participant IDs or integration IDs (`I-04`), separated by commas, with no spaces. A line that starts with `%%` and two or more spaces continues the note above. The viewer puts the code in a circle on the first target and lists the notes beside the diagram. Mark a point that is not decided with `[to confirm]`: the viewer shows it in yellow and can show only those. |
 | `status-default` | Optional. A status word from section 7 for every link, message or transition that has no tag. |
 | `note-codes` | Optional. One line for the viewer's key: what the note codes of this diagram are. The project-wide text goes in a `## Note codes` section of `PROJECT.md`. |
@@ -126,20 +126,19 @@ End the label of a link, sequence message, state transition, box or Mermaid note
 status word in capitals. The viewer and `export` remove the tag and show the status by colour, with
 a key under the diagram. The viewer's **Show** filter uses the same words.
 
-| Status | Group | Meaning |
+| Word | Group in "Show" | Meaning |
 |---|---|---|
-| `LIVE` | Built or in test | In production |
-| `IN TEST` | Built or in test | Built, in test |
-| `IN BUILD` | Built or in test | Being built |
-| `PLANNED` | Not built yet | Agreed, not built |
-| `PROPOSED` | Not built yet | Proposed, not agreed |
-| `OPEN` | Not built yet | Not decided; the mechanism is open |
-| `RETIRING` | Retiring | In use, to be removed |
+| `DONE` | Done | Built: live or in test |
+| `PLANNED` | Planned | Agreed or being built, not done yet |
+| `OPEN` | Open | Not decided yet |
+| `RETIRING` | Planned | To be removed; the label is struck through |
+| `RETIRED` | Done | Removed; the label is struck through |
 | `TBC` | To confirm | Not decided yet; give it a `[to confirm]` note |
 
 ```
-  bc -.->|"I-01 · sends paid orders<br/>webhook · IN TEST"| mw
+  bc -.->|"I-01 · sends paid orders<br/>webhook · DONE"| mw
   shop == "I-04 · EventBridge events · PLANNED Q1" ==> sap
+  bc -.->|"I-16 · BAPO webhook · RETIRING (replaced by I-01)"| mom
   w_kill -->|"· TBC"| m_refund
   mw->>titan: I-05 · Release with the tote ID · PLANNED · TBC
   af --> ca: Every line rejected · TBC
@@ -152,6 +151,8 @@ a key under the diagram. The viewer's **Show** filter uses the same words.
 - A box can also use the classes `planned` and `tbc`.
 - A link or message with no tag takes its integration's status from the Integrations registry, then
   the header's `status-default`.
+- The older words still work (`LIVE` and `IN TEST` are `DONE`, `IN BUILD` is `PLANNED`, `PROPOSED`
+  is `OPEN`), but write the new ones.
 - Do not write the status as words, such as "(built)" or "(not built)", and do not use `linkStyle`
   for it.
 

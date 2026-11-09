@@ -106,10 +106,13 @@ somewhere else. Add `.diagrams-site/` to the project's
 - **Statuses by colour.** The viewer reads the status tags (see [Statuses](#statuses-in-the-diagrams)),
   removes them from the labels and shows each status by its colour and line. A key under the
   diagram gives the statuses that the diagram uses.
-- **Show.** The **Show** row highlights one status group and dims the rest: *Built or in test*,
-  *Not built yet*, *Retiring* or *To confirm*. It works for links, messages, transitions and boxes,
-  in every diagram type. A box stays clear when a link that the filter shows starts or ends on it.
-  The row shows only the groups that the diagram uses.
+- **Show.** The **Show** row highlights one status and dims the rest: *Done*, *Planned*, *Open*
+  or *To confirm*. It works for links, messages, transitions and boxes, in every diagram type. A
+  box stays clear when a link that the filter shows starts or ends on it. The row shows only the
+  statuses that the diagram uses.
+- **A short head.** Above the diagram are the title, the ID, the status, the diagram list and the
+  first sentence of the `%% notes:` line, over the full width. The rest of that line and the other
+  header fields (owner, verified date, file) are in **About this diagram** under the diagram.
 - **Integrations in this diagram.** The table under the diagram gives the Integrations registry
   rows of each `I-xx` in the diagram: in link labels, messages or transitions. Click a row to show
   that integration and zoom to it. Click a label to find its row. The filter applies to the table too.
@@ -132,21 +135,22 @@ One convention gives the status of an item in every diagram type. End the item's
 
 | Item | Example |
 |---|---|
-| Flowchart link | `bc -.->\|"I-01 · sends paid orders<br/>webhook · IN TEST"\| mw` |
+| Flowchart link | `bc -.->\|"I-01 · sends paid orders<br/>webhook · DONE"\| mw` |
 | Link with no words | `w_kill -->\|"· TBC"\| m_refund` |
 | Sequence message | `mw->>titan: I-05 · Release with the tote ID · PLANNED · TBC` |
 | State transition | `af --> ca: Every line rejected · TBC` |
 | Box, or Mermaid note | `m_split1["Split point 1 · TBC"]`, `Note over mw: Held for the gate · OPEN` |
+| Link to remove | `bc -.->\|"I-16 · BAPO webhook · RETIRING (replaced by I-01)"\| mom` |
 
-| Status | Group in "Show" | Meaning | Line |
+There are three statuses, and two marks for a link that goes away:
+
+| Word | "Show" button | Meaning | Line |
 |---|---|---|---|
-| `LIVE` | Built or in test | In production | Solid green |
-| `IN TEST` | Built or in test | Built, in test | Solid blue |
-| `IN BUILD` | Built or in test | Being built | Long-dash blue |
-| `PLANNED` | Not built yet | Agreed, not built | Dashed orange |
-| `PROPOSED` | Not built yet | Proposed, not agreed | Dotted orange |
-| `OPEN` | Not built yet | Not decided, the mechanism is open | Dashed amber |
-| `RETIRING` | Retiring | In use, to be removed | Dotted grey, label struck through |
+| `DONE` | Done | Built: live or in test | Solid blue |
+| `PLANNED` | Planned | Agreed or being built, not done yet | Dashed orange |
+| `OPEN` | Open | Not decided yet | Dotted amber |
+| `RETIRING` | Planned | To be removed: the removal is still to do | Dashed orange, label struck through |
+| `RETIRED` | Done | Removed | Solid blue, label struck through |
 | `TBC` | To confirm | Not decided yet: give it a `[to confirm]` note | Yellow label or box |
 
 Rules:
@@ -158,8 +162,10 @@ Rules:
 - Boxes can also take their status from the house classes: `planned` is `PLANNED`, `tbc` is `TBC`.
 - A link or message with no tag takes, in this order: the status of its `I-xx` in the Integrations
   registry (when the label has one `I-xx` only), then the header's `%% status-default: <STATUS>`.
-  Use `status-default` when most items share one status, for example `IN TEST` on a diagram of
+  Use `status-default` when most items share one status, for example `DONE` on a diagram of
   built behaviour, and tag only the others.
+- The kit also reads older words: `LIVE` and `IN TEST` are `DONE`, `IN BUILD` is `PLANNED`,
+  `PROPOSED` is `OPEN`. Write the new words.
 - The kit does not read a tag in the label of an `opt`, `alt` or `loop` block.
 - Do not add `linkStyle` lines or "(built)" / "(not built)" words for status. The tag does both.
 - On GitHub and in other plain Mermaid renderers, the tag shows as text. That is correct.

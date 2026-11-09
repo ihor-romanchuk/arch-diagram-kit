@@ -26,7 +26,7 @@ How they fit together: **1 → 4** zooms into one system; **2** sits beside 1 an
 ## 2. Integration map (`INT`)
 
 - **Use when:** several systems already run in production and connections are being added, changed or retired. Usually the main diagram on integration projects.
-- **Must show:** each system once; each integration as an arrow with its `I-xx` ID, mechanism (REST, webhook, file over SFTP, events) and status (`LIVE`, `PLANNED <when>`, `RETIRING`); what replaces what.
+- **Must show:** each system once; each integration as an arrow with its `I-xx` ID, mechanism (REST, webhook, file over SFTP, events) and status tag (`DONE`, `PLANNED <when>`, `OPEN`, `RETIRING`; see house style, section 7); what replaces what.
 - **Avoid:** internals of the systems. Keep one arrow per integration.
 
 ## 3. Business process (`PRC`)
