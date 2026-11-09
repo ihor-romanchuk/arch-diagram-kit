@@ -120,15 +120,20 @@ button:focus-visible, select:focus-visible, tr:focus-visible, a:focus-visible { 
 /* Mermaid's own notes are neutral grey (the kit sets them so); yellow means "to confirm" only. */
 
 /* Full screen: the toolbar, the board, the notes and the key fill the screen. The Fullscreen API is
-   used when the page may use it; else (in some frames) the same layout covers the window. */
+   used when the page may use it; else (in some frames) the same layout covers the window. The
+   diagram list moves into the toolbar, between a previous and a next button, so the user can go
+   to a different diagram and stay in full screen. */
 .viewer { display: grid; gap: 14px; min-width: 0; }
-.fs-title { display: none; font: 600 1rem/1.3 var(--heading); margin-right: auto; }
+.fs-nav { display: none; margin-right: auto; min-width: 0; flex-wrap: nowrap; }
+.fs-nav select { min-width: 0; max-width: min(60ch, 100%); }
+.fs-nav button { padding-inline: 9px; font-size: 1rem; line-height: 1; }
+.fs-nav button:disabled { opacity: .4; cursor: default; border-color: var(--line); }
 .viewer:fullscreen, .viewer.fs {
   position: fixed; inset: 0; z-index: 1000; background: var(--bg); overflow: auto;
   padding: 10px max(16px, env(safe-area-inset-left, 0px)) 12px; gap: 10px;
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
-.viewer:fullscreen .fs-title, .viewer.fs .fs-title { display: block; }
+.viewer:fullscreen .fs-nav, .viewer.fs .fs-nav { display: flex; }
 .viewer:fullscreen .work, .viewer.fs .work { min-height: 0; }
 .viewer:fullscreen .board, .viewer.fs .board { height: auto; min-height: 240px; }
 .viewer:fullscreen .rail, .viewer.fs .rail { max-height: none; min-height: 0; }
@@ -238,7 +243,10 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
 
   <section class="viewer" id="viewer" aria-label="Diagram">
     <div class="toolbar">
-      <span class="fs-title" id="fs-title"></span>
+      <div class="group fs-nav" id="fs-nav" role="group" aria-label="Go to a diagram">
+        <button id="d-prev" aria-label="Previous diagram" title="Previous diagram (Page Up)">&#8249;</button>
+        <button id="d-next" aria-label="Next diagram" title="Next diagram (Page Down)">&#8250;</button>
+      </div>
       <div class="group" role="group" aria-label="Show items by status" id="filters" hidden>
         <span class="group-label">Show</span>
         <span class="group" id="filter-btns"></span>
@@ -248,7 +256,8 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
         <span class="zoom-level" id="z-level">100%</span>
         <button id="z-in" aria-label="Zoom in">+</button>
         <button id="z-fit">Fit</button>
-        <button id="fs" aria-pressed="false" title="Full screen (Esc to leave)">
+        <button id="notes-toggle" aria-pressed="true" aria-controls="rail" title="Show or hide the notes" hidden>Notes</button>
+        <button id="fs"aria-pressed="false" title="Full screen (Esc to leave)">
           <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
           <span id="fs-text">Full screen</span>
         </button>
@@ -402,7 +411,8 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     if (!d) return Promise.resolve();
     const seq = ++renderSeq;
     select.value = d.slug;
-    queue = queue.then(() => render(d, seq, keepView)).catch((e) => showError(e.message || String(e)));
+    updateNav();
+    queue =queue.then(() => render(d, seq, keepView)).catch((e) => showError(e.message || String(e)));
     return queue;
   }
   async function render(d, seq, keepView) {
@@ -462,7 +472,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     select.value = d.slug;
     document.title = (d.id ? d.id + ' · ' : '') + (manifest.project || 'Architecture Diagrams');
     $('title').textContent = d.title || d.file;
-    $('fs-title').textContent = (d.id ? d.id + ' · ' : '') + (d.title || d.file);
+    updateNav();
     renderMeta(d);
   }
   function showError(msg) {
@@ -576,6 +586,9 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     $('fs-text').textContent = on ? 'Exit full screen' : 'Full screen';
     $('fs').title = on ? 'Exit full screen (Esc)' : 'Full screen (Esc to leave)';
     document.body.classList.toggle('fs-open', on);
+    // The header is not in full screen, so the diagram list goes into the toolbar and back.
+    if (on && select.parentNode !== $('fs-nav')) $('d-next').before(select);
+    if (!on && select.parentNode === $('fs-nav')) $('live').before(select);
   }
   async function enterFs() {
     // Some frames refuse the Fullscreen API, and some never answer it; then the viewer covers the
@@ -827,10 +840,12 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     });
     if (isFinite(x0)) fitBox(x0, y0, x1, y1);
   }
-  /** Show a note in the rail: clear the rail's filters if they hide it, then scroll to it. */
-  function revealCard(code) {
+  /** Show a note in the rail: clear the rail's filters if they hide it, then scroll to it. When the
+   *  rail is closed, only a click on the note's circled code (open) opens it. */
+  function revealCard(code, open) {
     const card = cardOf(code);
     if (!card) return;
+    if (!notesOn) { if (!open) return; setNotesOn(true); }
     if (card.hidden) { $('note-search').value = ''; $('note-tbc').checked = false; filterNotes(); }
     card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
@@ -875,10 +890,28 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   function focusOf(note) {
     return note.targets.flatMap((t) => (nodes[t] ? nodes[t].focus || nodes[t].els : byInt[t] ? byInt[t].flatMap((it) => it.els) : []));
   }
+  // The Notes button opens and closes the rail. The choice stays for the other diagrams and, where
+  // the browser keeps it, for the next visit.
+  const NOTES_KEY = 'arch-diagrams:notes';
+  let notesOn = true;
+  try { notesOn = localStorage.getItem(NOTES_KEY) !== 'off'; } catch (e) { /* no storage: open */ }
+  function showRail() {
+    const has = Boolean(svg && notesOf().length), on = has && notesOn;
+    $('notes-toggle').hidden = !has;
+    $('notes-toggle').setAttribute('aria-pressed', String(notesOn));
+    $('notes-toggle').title = notesOn ? 'Hide the notes' : 'Show the notes';
+    $('rail').hidden = !on;
+    $('work').classList.toggle('has-notes', on);
+  }
+  function setNotesOn(on) {
+    notesOn = on;
+    try { localStorage.setItem(NOTES_KEY, on ? 'on' : 'off'); } catch (e) { /* no storage */ }
+    showRail();
+  }
+  $('notes-toggle').onclick = () => setNotesOn(!notesOn);
   function renderNotes() {
     const list = svg ? notesOf() : [];
-    $('rail').hidden = !list.length;
-    $('work').classList.toggle('has-notes', list.length > 0);
+    showRail();
     const hasTbc = list.some((n) => n.toConfirm);
     $('tbc-wrap').hidden = !hasTbc;
     // A hidden filter must not stay on, or a diagram with no points to confirm shows no notes.
@@ -985,7 +1018,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
     if (badge) {
       if (selected && selected.type === 'note' && selected.key === badge.dataset.code) return clearSel();
       selectNote(badge.dataset.code, false);
-      revealCard(badge.dataset.code);
+      revealCard(badge.dataset.code, true);
       return;
     }
     const it = itemAt(e.target);
@@ -1105,6 +1138,23 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   }
 
   // ---------- Navigation and live reload ----------
+  // Previous and next follow the list's order. They read the list, not the diagram on screen, so a
+  // quick second click goes one step further.
+  function step(delta) {
+    const o = select.options[select.selectedIndex + delta];
+    if (select.selectedIndex >= 0 && o) location.hash = o.value;
+  }
+  function updateNav() {
+    const i = select.selectedIndex, n = select.options.length;
+    $('d-prev').disabled = i <= 0;
+    $('d-next').disabled = i < 0 || i >= n - 1;
+  }
+  $('d-prev').onclick = () => step(-1);
+  $('d-next').onclick = () => step(1);
+  document.addEventListener('keydown', (e) => {
+    if (!isFs() || e.altKey || e.ctrlKey || e.metaKey || e.target.closest('input, select, textarea')) return;
+    if (e.key === 'PageUp' || e.key === 'PageDown') { e.preventDefault(); step(e.key === 'PageUp' ? -1 : 1); }
+  });
   select.addEventListener('change', () => { location.hash = select.value; });
   window.addEventListener('hashchange', async () => { if (manifest) show(await pickFresh(), false); });
 

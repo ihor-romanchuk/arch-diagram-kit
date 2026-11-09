@@ -101,8 +101,11 @@ somewhere else. Add `.diagrams-site/` to the project's
 ### What the viewer shows
 
 - **Full screen.** The **Full screen** button shows the toolbar, the diagram, the notes and the key
-  on the full screen, with pan and zoom. Click the button again or push Esc to go back. Where a frame
-  does not allow the browser's full screen, the viewer covers the window instead.
+  on the full screen, with pan and zoom. In full screen, the diagram list is in the toolbar, between
+  a previous (‹) and a next (›) button, so you can go to a different diagram and stay in full
+  screen. Page Up and Page Down also go to the previous and the next diagram. Click the button
+  again or push Esc to go back. Where a frame does not allow the browser's full screen, the viewer
+  covers the window instead.
 - **Statuses by colour.** The viewer reads the status tags (see [Statuses](#statuses-in-the-diagrams)),
   removes them from the labels and shows each status by its colour and line. A key under the
   diagram gives the statuses that the diagram uses.
@@ -122,7 +125,10 @@ somewhere else. Add `.diagrams-site/` to the project's
   - Click or hover a circled code: the viewer highlights its note in the rail and scrolls to it.
   - Click an item (a box, a participant, a link or a message): the viewer marks the notes about it
     and scrolls to the first.
-  Search the notes, or show only the points to confirm.
+  Search the notes, or show only the points to confirm. The **Notes** button in the toolbar hides
+  the rail, so the diagram gets the full width, and shows it again. The viewer keeps this choice
+  for the other diagrams and, where the browser lets it, for the next visit. When the rail is
+  hidden, a click on a circled code opens the rail again.
 - **Yellow means "to confirm", and nothing else.** Mermaid's own notes (`Note over`, `note right
   of`) are yellow by default. The viewer and `export` make them neutral grey for every diagram, so
   yellow is only the house `tbc` class and the `TBC` tag. The key says what yellow means and what
