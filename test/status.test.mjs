@@ -104,6 +104,20 @@ describe('styleExportSvg', () => {
     assert.match(out, /<g data-tbc="1" class="node default"/);
     assert.match(out, /<rect data-st="open" x="0" class="note"/);
   });
+  test('a struck message "to confirm" (RETIRING · TBC) gets its yellow halo from a copy under the text', () => {
+    // SVG draws a line-through with the stroke of its text. With the halo on the text itself, the
+    // 8px yellow stroke made a thick yellow strike across the words.
+    const svg = `<svg id="s"><text x="5" class="messageText" style="font-size: 16px;">I-16 · Create order${m('RETIRING', true)}</text>` +
+      `<line class="messageLine0" data-et="message" data-id="i1"/></svg>`;
+    const out = styleExportSvg(svg);
+    assert.ok(out.includes('<text class="tbc-halo" aria-hidden="true" x="5" style="font-size: 16px;">I-16 · Create order</text>' +
+      '<text data-st="retiring" data-tbc="1" x="5" class="messageText"'), out);
+    const css = statusCss('#s');
+    assert.match(css, /#s text\.tbc-halo\{[^}]*stroke-width:8px[^}]*text-decoration:none/);
+    assert.match(css, /#s text\[data-st="retiring"\][^{]*\{text-decoration:line-through/);
+    assert.doesNotMatch(css, /text\[data-tbc\][^{]*\{[^}]*stroke-width/, 'no halo stroke on the struck text itself');
+    assert.equal(styleExportSvg(svg.replace(m('RETIRING', true), m('RETIRING', false))).includes('tbc-halo"'), false);
+  });
   test('the CSS takes the theme colours', () => {
     assert.match(statusCss('#x', (c) => (c === '#1F6FA8' ? '#186267' : c)), /data-st="done"\]\{stroke:#186267/);
     assert.match(statusCss('#x'), /\[data-st="retiring"\] p[^{]*\{text-decoration:line-through/);

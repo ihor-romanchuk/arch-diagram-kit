@@ -82,9 +82,9 @@ The kit is also a small command, `arch-diagrams`. A project needs no copy of it:
 from the project's root, pinned to a tag. It needs Node.js 20 or later, and Chrome for exports.
 
 ```bash
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.0 serve --open    # viewer on http://localhost:4800
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.0 export          # SVGs in diagrams/_rendered/, fails on errors
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.0 build           # .diagrams-site/, the copy to publish
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.1 serve --open    # viewer on http://localhost:4800
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.1 export          # SVGs in diagrams/_rendered/, fails on errors
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.1 build           # .diagrams-site/, the copy to publish
 ```
 
 It reads `docs/architecture/diagrams/*.mmd`, `docs/architecture/PROJECT.md` and, if there is one,
@@ -156,7 +156,8 @@ There are three statuses, and two marks for a link that goes away:
 Rules:
 
 - The tag is the **last** part of the label, and the words are in capitals. `TBC` can follow a
-  status (`· PLANNED · TBC`) or stand alone (`· TBC`).
+  status (`· PLANNED · TBC`) or stand alone (`· TBC`). After `RETIRING` or `RETIRED`, the label
+  shows both marks: it is struck through, and it is yellow.
 - Words after the status stay in the label: `· PLANNED Q1` shows "Q1", and `· RETIRING (replaced by
   I-04)` shows "(replaced by I-04)".
 - Boxes can also take their status from the house classes: `planned` is `PLANNED`, `tbc` is `TBC`.
@@ -255,8 +256,8 @@ Always link back to the `.mmd` file, so nobody edits the picture.
 ## Rendering and checking
 
 ```bash
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.0 export          # SVG, fails on any syntax error
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.0 export --png    # also PNG for slides
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.1 export          # SVG, fails on any syntax error
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.1 export --png    # also PNG for slides
 ```
 
 Run it before every commit, or in CI. `scripts/render.sh [folder] [--png]` in this repo does the same.

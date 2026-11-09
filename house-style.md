@@ -145,7 +145,8 @@ a key under the diagram. The viewer's **Show** filter uses the same words.
   Note over mw: Held for the gate · OPEN
 ```
 
-- The tag is the last part of the label. `TBC` can follow a status or stand alone.
+- The tag is the last part of the label. `TBC` can follow a status or stand alone. A
+  `RETIRING · TBC` or `RETIRED · TBC` label is struck through and yellow.
 - Words after the status word stay in the label (`PLANNED Q1`, `RETIRING (replaced by I-04)`).
 - A link with no words gets a label of the tag alone: `|"· TBC"|`.
 - A box can also use the classes `planned` and `tbc`.
