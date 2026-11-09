@@ -94,7 +94,7 @@ somewhere else. Add `.diagrams-site/` to the project's
 
 | Command | What it does |
 |---|---|
-| `serve` | The viewer on localhost. It lists every diagram (link per diagram: `#int-01`), with pan, zoom and full screen. When you save a `.mmd` file or `PROJECT.md`, the open diagram draws again in less than a second, with the same zoom. A syntax error shows above the last good version. |
+| `serve` | The viewer on localhost. It lists every diagram (link per diagram: `#int-01`) in the order of the Diagram index in `PROJECT.md`, then by ID, with pan, zoom and full screen. When you save a `.mmd` file or `PROJECT.md`, the open diagram draws again in less than a second, with the same zoom. A syntax error shows above the last good version. |
 | `export` | An SVG (and a PNG with `--png`, taken by Chrome) of each diagram in `<folder>/_rendered/`, with the statuses by colour. It fails when a diagram has an error, so it is also the render check for CI. |
 | `build` | The viewer, `manifest.json` and the `.mmd` files in one folder that works with no server. It prints the files to publish. |
 
