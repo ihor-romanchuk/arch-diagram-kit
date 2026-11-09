@@ -82,9 +82,9 @@ The kit is also a small command, `arch-diagrams`. A project needs no copy of it:
 from the project's root, pinned to a tag. It needs Node.js 20 or later, and Chrome for exports.
 
 ```bash
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.2 serve --open    # viewer on http://localhost:4800
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.2 export          # SVGs in diagrams/_rendered/, fails on errors
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.2 build           # .diagrams-site/, the copy to publish
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.3 serve --open    # viewer on http://localhost:4800
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.3 export          # SVGs in diagrams/_rendered/, fails on errors
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.3 build           # .diagrams-site/, the copy to publish
 ```
 
 It reads `docs/architecture/diagrams/*.mmd`, `docs/architecture/PROJECT.md` and, if there is one,
@@ -263,8 +263,8 @@ Always link back to the `.mmd` file, so nobody edits the picture.
 ## Rendering and checking
 
 ```bash
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.2 export          # SVG, fails on any syntax error
-npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.2 export --png    # also PNG for slides
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.3 export          # SVG, fails on any syntax error
+npx -y github:ihor-romanchuk/arch-diagram-kit#v0.3.3 export --png    # also PNG for slides
 ```
 
 Run it before every commit, or in CI. `scripts/render.sh [folder] [--png]` in this repo does the same.
