@@ -740,6 +740,15 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
         if (it.status) el.setAttribute('data-st', statusSlug(it.status));
         if (it.tbc) el.setAttribute('data-tbc', '1');
       });
+      // A message "to confirm": a yellow copy under each of its texts (see haloSvg in status.mjs).
+      if (it.tbc) (it.texts || []).forEach((t) => {
+        const halo = t.cloneNode(true);
+        ['id', 'class', 'data-st', 'data-tbc'].forEach((a) => halo.removeAttribute(a));
+        halo.setAttribute('class', HALO + ' it');
+        halo.setAttribute('aria-hidden', 'true');
+        t.parentNode.insertBefore(halo, t);
+        it.els.push(halo);
+      });
       const tip = [it.status && STATUS_NAMES[it.status] + ': ' + STATUS_MEANINGS[it.status], it.tbc && 'to confirm'].filter(Boolean).join(' \u00B7 ');
       [it.line, ...(it.texts || []), it.label, it.kind === 'node' || it.kind === 'mnote' ? it.els[0] : null].filter(Boolean).forEach((el) => {
         const t = document.createElementNS('http://www.w3.org/2000/svg', 'title');

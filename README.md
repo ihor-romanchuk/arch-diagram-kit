@@ -162,7 +162,8 @@ There are three statuses, and two marks for a link that goes away:
 Rules:
 
 - The tag is the **last** part of the label, and the words are in capitals. `TBC` can follow a
-  status (`· PLANNED · TBC`) or stand alone (`· TBC`).
+  status (`· PLANNED · TBC`) or stand alone (`· TBC`). After `RETIRING` or `RETIRED`, the label
+  shows both marks: it is struck through, and it is yellow.
 - Words after the status stay in the label: `· PLANNED Q1` shows "Q1", and `· RETIRING (replaced by
   I-04)` shows "(replaced by I-04)".
 - Boxes can also take their status from the house classes: `planned` is `PLANNED`, `tbc` is `TBC`.
