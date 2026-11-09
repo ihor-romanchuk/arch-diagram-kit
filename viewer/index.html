@@ -1060,14 +1060,15 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   });
 
   // ---------- The "Show" filter: one status group, for every diagram type ----------
-  const ORDER = ['done', 'planned', 'open', 'tbc'];
+  // An item to confirm (TBC) is not decided yet, so Open shows it too, whatever its status.
+  const ORDER = ['done', 'planned', 'open'];
   const groupOf = (it) => (it.status ? STATUS_GROUPS[it.status] : null);
   function buildFilters() {
     const present = new Set();
     items.forEach((it) => {
       if (it.kind === 'actor') return;
       if (it.status) present.add(groupOf(it));
-      if (it.tbc) present.add('tbc');
+      if (it.tbc) present.add('open');
     });
     if (filter !== 'all' && !present.has(filter)) filter = 'all';
     $('filters').hidden = !present.size;
@@ -1082,7 +1083,7 @@ td code, .foot code { font-family: var(--mono); font-size: .85em; }
   });
   function matches(it) {
     if (filter === 'all') return true;
-    return filter === 'tbc' ? it.tbc : groupOf(it) === filter;
+    return groupOf(it) === filter || (filter === 'open' && it.tbc);
   }
   function applyFilter() {
     document.querySelectorAll('#filter-btns [data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === filter)));

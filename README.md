@@ -109,8 +109,9 @@ somewhere else. Add `.diagrams-site/` to the project's
 - **Statuses by colour.** The viewer reads the status tags (see [Statuses](#statuses-in-the-diagrams)),
   removes them from the labels and shows each status by its colour and line. A key under the
   diagram gives the statuses that the diagram uses.
-- **Show.** The **Show** row highlights one status and dims the rest: *Done*, *Planned*, *Open*
-  or *To confirm*. It works for links, messages, transitions and boxes, in every diagram type. A
+- **Show.** The **Show** row highlights one status and dims the rest: *Done*, *Planned* or
+  *Open*. *Open* also shows each item to confirm (`TBC`), whatever its status, because it is not
+  decided yet. It works for links, messages, transitions and boxes, in every diagram type. A
   box stays clear when a link that the filter shows starts or ends on it. The row shows only the
   statuses that the diagram uses.
 - **A short head.** Above the diagram are the title, the ID, the status, the diagram list and the
