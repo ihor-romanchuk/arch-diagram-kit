@@ -41,6 +41,10 @@ Every name on every diagram comes from this table. Add a system here **before** 
 |---|---|---|---|---|---|---|---|
 | I-01 | | | | REST / webhook / events / file over SFTP | | live / planned <when> / retiring | |
 
+## Note codes
+
+The circled codes in the diagrams are the codes of the `%% note` lines. Say here where they come from, for example "codes from the client's process maps (G1, N5), or codes that the diagram's author made". The viewer shows this paragraph in the key under each diagram.
+
 ## Glossary
 
 | Term | Meaning |

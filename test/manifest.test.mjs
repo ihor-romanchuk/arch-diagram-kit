@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { cellToHtml, loadTheme, parseArgs, parseHeader, parseProject, parseTableUnder, recolor, repoWebUrl, slugFor, statusGroup } from '../lib/manifest.mjs';
+import { sortDiagrams, cellToHtml, loadTheme, parseArgs, parseHeader, parseProject, parseTableUnder, recolor, repoWebUrl, slugFor, statusGroup } from '../lib/manifest.mjs';
 
 const MMD = `---
 title: Molecule systems · Integration map
@@ -122,13 +122,14 @@ describe('cellToHtml', () => {
 });
 
 describe('statusGroup', () => {
-  test('groups the house statuses', () => {
-    assert.equal(statusGroup('IN TEST'), 'built');
-    assert.equal(statusGroup('IN BUILD'), 'built');
-    assert.equal(statusGroup('LIVE'), 'built');
-    assert.equal(statusGroup('OPEN'), 'future');
-    assert.equal(statusGroup('PROPOSED'), 'future');
-    assert.equal(statusGroup('RETIRING (replaced by I-01)'), 'retiring');
+  test('groups the house statuses, older words included', () => {
+    assert.equal(statusGroup('DONE'), 'done');
+    assert.equal(statusGroup('IN TEST'), 'done');
+    assert.equal(statusGroup('LIVE'), 'done');
+    assert.equal(statusGroup('IN BUILD'), 'planned');
+    assert.equal(statusGroup('OPEN'), 'open');
+    assert.equal(statusGroup('PROPOSED'), 'open');
+    assert.equal(statusGroup('RETIRING (replaced by I-01)'), 'planned');
     assert.equal(statusGroup('?'), 'other');
   });
 });
@@ -138,7 +139,7 @@ describe('parseProject', () => {
     const p = parseProject(PROJECT, {});
     assert.equal(p.name, 'Architecture project file');
     assert.equal(p.systems, null);
-    assert.deepEqual(p.integrations.rows.map((r) => [r.id, r.group]), [['I-01', 'built'], ['I-02', 'retiring'], ['I-03', 'future']]);
+    assert.deepEqual(p.integrations.rows.map((r) => [r.id, r.group]), [['I-01', 'done'], ['I-02', 'planned'], ['I-03', 'planned']]);
     assert.equal(p.integrations.statusColumn, 2);
   });
 });
@@ -156,5 +157,18 @@ describe('repoWebUrl and parseArgs', () => {
   test('reads values, flags and file names over the defaults', () => {
     assert.deepEqual(parseArgs(['--port', '5000', '--open', 'a.mmd', '--out=x'], { port: '4800' }),
       { port: '5000', open: true, _: ['a.mmd'], out: 'x' });
+  });
+});
+
+describe('sortDiagrams', () => {
+  const ds = [
+    { file: 'sequence--b.mmd', id: 'SEQ-10' }, { file: 'sequence--a.mmd', id: 'SEQ-2' },
+    { file: 'state--x.mmd', id: 'STA-01' }, { file: 'integration--x.mmd', id: 'INT-01' }, { file: 'loose.mmd' },
+  ];
+  test('sorts by the catalog type order, then by number, not by file name', () => {
+    assert.deepEqual(sortDiagrams(ds).map((d) => d.id || d.file), ['INT-01', 'SEQ-2', 'SEQ-10', 'STA-01', 'loose.mmd']);
+  });
+  test('the Diagram index order comes first', () => {
+    assert.deepEqual(sortDiagrams(ds, ['STA-01', 'SEQ-10']).map((d) => d.id || d.file), ['STA-01', 'SEQ-10', 'INT-01', 'SEQ-2', 'loose.mmd']);
   });
 });

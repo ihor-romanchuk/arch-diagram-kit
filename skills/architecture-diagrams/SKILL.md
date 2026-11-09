@@ -36,7 +36,7 @@ Every diagram follows one catalog, one house style and one source format, on eve
 
 What each must show:
 - **CTX:** our system as ONE box; all user types; all external dependencies; verb-phrase labels. No internals, no protocols.
-- **INT:** each system once; one arrow per integration labelled `I-xx · mechanism · STATUS`; what replaces what.
+- **INT:** each system once; one arrow per integration labelled `I-xx · verb · mechanism · STATUS` (DONE, PLANNED, OPEN, RETIRING, RETIRED); what replaces what.
 - **PRC:** one lane per party; start and end; labelled decisions; unhappy paths. No tech names unless needed for the decision.
 - **CON:** apps, services, stores, queues inside a named boundary; tech line `language · runtime`; externals outside; protocol on every arrow.
 - **SEQ:** max 8 participants, about 20 steps; `->>` sync, `-)` async, `-->>` response; show when state changes.
@@ -76,13 +76,16 @@ config:
 %% last-verified: <YYYY-MM-DD>
 %% notes: <the one question this diagram answers>
 %% note <code> <target,target> [to confirm]: <optional: a note on boxes; see below>
+%% status-default: <optional: the status of links or messages with no tag; see Statuses>
 ```
 
 Keep both `fontFamily` lines: Mermaid 11 uses only the one directly under `config:`, and without it every renderer except a configured one falls back to its default font.
 
 New diagrams start as **Draft**. Take the next free ID from the Diagram index.
 
-**Notes.** Put the reasons, sources and open points that a reader needs in `%% note` lines, not in the boxes: `%% note G1 m_rule,p_check: <text>`. The code is short and unique in the file. The targets are node IDs or `I-xx`, separated by commas with no spaces, and are optional. Add `[to confirm]` before the colon for a point that is not decided, and say what is open and who decides it. A line that starts with `%%` and two or more spaces continues the note. The kit's viewer shows the notes in a rail, with the code in a circle on the first target. Keep box labels short and move the detail to notes.
+**Notes.** Put the reasons, sources and open points that a reader needs in `%% note` lines, not in the boxes: `%% note G1 m_rule,p_check: <text>`. The code is short and unique in the file. The targets are node IDs, sequence participant IDs or `I-xx`, separated by commas with no spaces, and are optional. Add `[to confirm]` before the colon for a point that is not decided, and say what is open and who decides it. A line that starts with `%%` and two or more spaces continues the note. The kit's viewer shows the notes in a rail, with the code in a circle on the first target, and links notes and items both ways. Keep box labels short and move the detail to notes. The text for the key of the circled codes (for example "codes from the client's process maps") goes in a `## Note codes` section of `PROJECT.md`, or in a `%% note-codes:` header line.
+
+**Statuses.** End the label of a link, sequence message, state transition, box or Mermaid note with ` · ` and one status word in capitals: `DONE` (built: live or in test), `PLANNED` (agreed or being built), `OPEN` (not decided), and `TBC` (to confirm) alone or after a status: `mw->>titan: I-05 · Release · PLANNED · TBC`, `af --> ca: Every line rejected · TBC`, `|"I-01 · sends orders · DONE"|`. A link that goes away gets `RETIRING` (filtered with Planned) or `RETIRED` (filtered with Done); its label is struck through, and its "replaced by" words stay: `· RETIRING (replaced by I-01)`. A link with no words gets `|"· TBC"|`. Words after the status word stay in the label (`PLANNED Q1`). The viewer and `export` remove the tag and show the status by colour, with a key and a "Show" filter (Done, Planned, Open, To confirm). Never write "(built)", "(not built)" or "(to confirm)" in labels, and never use `linkStyle` for status. A link or message with no tag takes its integration's registry status, then `%% status-default:`. Boxes can also use the classes `planned` and `tbc`. Yellow means "to confirm" only: the kit makes Mermaid's own notes grey. Keep `%% notes:` short: the viewer shows its first sentence above the diagram and the rest under it.
 
 ### Colour key (end of every flowchart)
 
@@ -98,7 +101,7 @@ New diagrams start as **Draft**. Take the next free ID from the Diagram index.
 
 - `person` people and roles; `internal` systems and code we own; `managed` cloud managed services (API Gateway, EventBridge, Cognito...); `external` other companies' or teams' systems; `store` databases, queues, buckets; `planned` boxes that do not exist yet; `tbc` boxes whose content is not confirmed (give each a `[to confirm]` note).
 - The registry's Class column decides the class.
-- Planned links: `linkStyle <n,m> stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4` (links count from 0 in declaration order).
+- Link, message and transition statuses: the status tag at the end of the label (see Statuses), not `linkStyle`.
 - Process diagrams use their own step classes: white steps with blue border, amber decisions (`fill:#FFF4E5,stroke:#B45309`), dark-blue rounded start/end nodes.
 
 ### Boxes and arrows
@@ -106,13 +109,13 @@ New diagrams start as **Draft**. Take the next free ID from the Diagram index.
 - Box text: `["<b>Name</b><br/>Role or technology"]`. Shapes: `[( )]` database, `[[ ]]` queue/bus, `([ ])` start/end, `{ }` decision.
 - Node IDs: short snake_case, stable across edits.
 - Every arrow has a label: verb phrase, plus `[protocol]` on tech diagrams. Arrow points from the initiator.
-- `-->` sync call, `-.->` async message/event, planned links styled as above.
+- `-->` sync call, `-.->` async message/event; the status tag gives the status.
 - Max 20 boxes. If more, split into linked diagrams and say so; never shrink.
 - `TB` for hierarchies, `LR` for flows. People top, our system middle, externals bottom/right. Name every subgraph.
 
 ## Step 3: review checklist
 
-1. Header complete. 2. Right type for the question in `notes`. 3. One abstraction level. 4. Names match the registry. 5. Colour classes on every box; planned items styled. 6. Every arrow labelled; protocols on tech diagrams. 7. Within size limits. 8. Integrations carry `I-xx` and status. 9. Readable by the stated audience. 10. Renders: when a shell is available, run the kit's `export` (or `mmdc -i file.mmd -o /tmp/check.svg`); otherwise check syntax carefully (quote labels with special characters, `<br/>` for line breaks, no unescaped parentheses in unquoted labels).
+1. Header complete. 2. Right type for the question in `notes`. 3. One abstraction level. 4. Names match the registry. 5. Colour classes on every box; statuses as tags, not words or `linkStyle`. 6. Every arrow labelled; protocols on tech diagrams. 7. Within size limits. 8. Integrations carry `I-xx` and a status tag. 9. Readable by the stated audience. 10. Renders: when a shell is available, run the kit's `export` (or `mmdc -i file.mmd -o /tmp/check.svg`); otherwise check syntax carefully (quote labels with special characters, `<br/>` for line breaks, no unescaped parentheses in unquoted labels).
 
 ## Step 4: output
 
