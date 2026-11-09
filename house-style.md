@@ -36,6 +36,8 @@ config:
 %% notes: <one line: what this diagram answers>
 %% note G1 node_id: <a note on one box, shown in the viewer's notes rail>
 %% note T1 node_id [to confirm]: <a point that is not decided yet>
+%% status-default: <optional: the status of every link or message with no tag, see section 7>
+%% note-codes: <optional: what this diagram's note codes are, for the viewer's key>
 ```
 
 | Field | Rule |
@@ -46,7 +48,9 @@ config:
 | `status` | See section 3 |
 | `last-verified` | The date someone last checked the diagram against reality |
 | `notes` | The question this diagram answers, in one line |
-| `note` | Optional, as many as necessary. `%% note <code> [targets] [to confirm]: <text>`. The code is short and unique in the file (`G1`, `T1`). The targets are node IDs or integration IDs (`I-04`), separated by commas, with no spaces. A line that starts with `%%` and two or more spaces continues the note above. The viewer puts the code in a circle on the first target and lists the notes beside the diagram. Mark a point that is not decided with `[to confirm]`: the viewer shows it in yellow and can show only those. |
+| `note` | Optional, as many as necessary. `%% note <code> [targets] [to confirm]: <text>`. The code is short and unique in the file (`G1`, `T1`). The targets are node IDs, sequence participant IDs or integration IDs (`I-04`), separated by commas, with no spaces. A line that starts with `%%` and two or more spaces continues the note above. The viewer puts the code in a circle on the first target and lists the notes beside the diagram. Mark a point that is not decided with `[to confirm]`: the viewer shows it in yellow and can show only those. |
+| `status-default` | Optional. A status word from section 7 for every link, message or transition that has no tag. |
+| `note-codes` | Optional. One line for the viewer's key: what the note codes of this diagram are. The project-wide text goes in a `## Note codes` section of `PROJECT.md`. |
 
 Keep both `fontFamily` lines. Mermaid 11 uses only the one directly under `config:`; without it, every renderer falls back to its default font.
 
@@ -93,16 +97,16 @@ Paste this block at the end of every flowchart. Use the same classes on every pr
 | `external` | Other companies' or other teams' systems | Stripe, SAP ERP, 3PL Warehouse |
 | `store` | Databases, queues, buckets, caches | Aurora PostgreSQL, SQS |
 | `planned` | Any box that does not exist yet | New CRM, planned service |
-| `tbc` | A box whose content is not confirmed yet. Give it a `[to confirm]` note that says what is open. | A step that a vendor must confirm |
+| `tbc` | A box whose content is not confirmed yet. Give it a `[to confirm]` note that says what is open. Yellow means this only. | A step that a vendor must confirm |
 
 A project can show these colours in its own brand without a change to the `.mmd` files: see
 "Project themes" in the README.
 
-Planned **links** get this style (list the link numbers, counting from 0):
+Links, messages and transitions get their status from a tag at the end of the label, not from
+`linkStyle` (section 7). The viewer and `export` colour them.
 
-```
-  linkStyle 3,5 stroke:#C2410C,stroke-width:2px,stroke-dasharray:6 4
-```
+Mermaid's own notes (`Note over`, `note right of`) are yellow by default. The viewer and `export`
+make them neutral grey, so yellow means "to confirm" only. Do not set note colours in the header.
 
 ## 6. Boxes
 
@@ -114,8 +118,42 @@ Planned **links** get this style (list the link numbers, counting from 0):
 
 - Every arrow has a label: a verb phrase, plus the protocol in brackets for tech diagrams: `Charges card [REST]`.
 - The arrow points from whoever **initiates** to whoever is called.
-- Line styles: `-->` synchronous call, `-.->` asynchronous message or event, thick dashed orange (`linkStyle`) = planned.
-- Integration maps add the status at the end of the label: `LIVE`, `PLANNED Q1`, `RETIRING`.
+- Line styles: `-->` synchronous call, `-.->` asynchronous message or event.
+
+### Statuses: one tag for every diagram type
+
+End the label of a link, sequence message, state transition, box or Mermaid note with ` · ` and a
+status word in capitals. The viewer and `export` remove the tag and show the status by colour, with
+a key under the diagram. The viewer's **Show** filter uses the same words.
+
+| Status | Group | Meaning |
+|---|---|---|
+| `LIVE` | Built or in test | In production |
+| `IN TEST` | Built or in test | Built, in test |
+| `IN BUILD` | Built or in test | Being built |
+| `PLANNED` | Not built yet | Agreed, not built |
+| `PROPOSED` | Not built yet | Proposed, not agreed |
+| `OPEN` | Not built yet | Not decided; the mechanism is open |
+| `RETIRING` | Retiring | In use, to be removed |
+| `TBC` | To confirm | Not decided yet; give it a `[to confirm]` note |
+
+```
+  bc -.->|"I-01 · sends paid orders<br/>webhook · IN TEST"| mw
+  shop == "I-04 · EventBridge events · PLANNED Q1" ==> sap
+  w_kill -->|"· TBC"| m_refund
+  mw->>titan: I-05 · Release with the tote ID · PLANNED · TBC
+  af --> ca: Every line rejected · TBC
+  Note over mw: Held for the gate · OPEN
+```
+
+- The tag is the last part of the label. `TBC` can follow a status or stand alone.
+- Words after the status word stay in the label (`PLANNED Q1`, `RETIRING (replaced by I-04)`).
+- A link with no words gets a label of the tag alone: `|"· TBC"|`.
+- A box can also use the classes `planned` and `tbc`.
+- A link or message with no tag takes its integration's status from the Integrations registry, then
+  the header's `status-default`.
+- Do not write the status as words, such as "(built)" or "(not built)", and do not use `linkStyle`
+  for it.
 
 ## 8. Size
 
@@ -153,6 +191,6 @@ Run this before you share any diagram.
 5. Every box uses a colour-key class; planned items are styled as planned.
 6. Every arrow has a label; tech diagrams include the protocol.
 7. It has no more than 20 boxes (or 8 participants for a sequence).
-8. Integration arrows carry their `I-xx` ID and status.
+8. Integration arrows carry their `I-xx` ID and a status tag; other statuses use the tags of section 7, not words.
 9. The audience can read it: no technology names on business diagrams unless they matter to the decision.
 10. It renders without errors.
